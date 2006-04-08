@@ -3,7 +3,7 @@
 from distutils.core import setup, Extension
 
 FloatToHexModule = Extension('FloatToHex',
-                         sources = ['floattohex.cpp'])
+                         sources = ['floattohex.c'])
 
 setup (name = 'FloatToHex',
        version = '1.0',
