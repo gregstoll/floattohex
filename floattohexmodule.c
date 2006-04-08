@@ -15,8 +15,6 @@
 
 static PyObject *ErrorObject;
 
-/* Function of two integers returning integer */
-
 static PyObject *
 FloatToHex_FloatToHex(PyObject *self, PyObject *args)
 {
@@ -27,11 +25,20 @@ FloatToHex_FloatToHex(PyObject *self, PyObject *args)
     return PyInt_FromLong(i);
 }
 
-
+static PyObject *
+FloatToHex_HexToFloat(PyObject *self, PyObject *args)
+{
+    int i;
+    if (!PyArg_ParseTuple(args, "i:hextofloat", &i))
+        return NULL;
+    float f = *((float *)&i);
+    return Py_BuildValue("f", f);
+}
 /* List of functions defined in the module */
 
 static PyMethodDef FloatToHex_methods[] = {
     {"floattohex",     (PyCFunction)FloatToHex_FloatToHex,  METH_VARARGS},
+    {"hextofloat",     (PyCFunction)FloatToHex_HexToFloat,  METH_VARARGS},
     {NULL,      NULL}       /* sentinel */
 };
 
