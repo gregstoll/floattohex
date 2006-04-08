@@ -18,7 +18,7 @@ static PyObject *ErrorObject;
 /* Function of two integers returning integer */
 
 static PyObject *
-FloatToHex_FloatHoHex(PyObject *, PyObject *args)
+FloatToHex_FloatToHex(PyObject *self, PyObject *args)
 {
     float f;
     if (!PyArg_ParseTuple(args, "f:floattohex", &f))
@@ -42,10 +42,6 @@ DL_EXPORT(void)
 initFloatToHex(void)
 {
     PyObject *m, *d;
-
-    /* Initialize the type of the new type object here; doing it here
-     * is required for portability to Windows without requiring C++. */
-    Xxo_Type.ob_type = &PyType_Type;
 
     /* Create the module and add the functions */
     m = Py_InitModule("FloatToHex", FloatToHex_methods);
