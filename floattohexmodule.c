@@ -22,7 +22,7 @@ FloatToHex_FloatToHex(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "f:floattohex", &f))
         return NULL;
     int i = *((int *)&f);
-    return PyInt_FromLong(i);
+    return Py_BuildValue("i", i);
 }
 
 static PyObject *
@@ -34,11 +34,33 @@ FloatToHex_HexToFloat(PyObject *self, PyObject *args)
     float f = *((float *)&i);
     return Py_BuildValue("f", f);
 }
+
+static PyObject *
+FloatToHex_DoubleToHex(PyObject *self, PyObject *args)
+{
+    double d;
+    if (!PyArg_ParseTuple(args, "d:doubletohex", &d))
+        return NULL;
+    long long l = *((long long*)&d);
+    return Py_BuildValue("L", l);
+}
+
+static PyObject *
+FloatToHex_HexToDouble(PyObject *self, PyObject *args)
+{
+    long long l;
+    if (!PyArg_ParseTuple(args, "L:hextodouble", &l))
+        return NULL;
+    double d = *((double *)&l);
+    return Py_BuildValue("d", d);
+}
 /* List of functions defined in the module */
 
 static PyMethodDef FloatToHex_methods[] = {
     {"floattohex",     (PyCFunction)FloatToHex_FloatToHex,  METH_VARARGS},
     {"hextofloat",     (PyCFunction)FloatToHex_HexToFloat,  METH_VARARGS},
+    {"doubletohex",    (PyCFunction)FloatToHex_DoubleToHex, METH_VARARGS},
+    {"hextodouble",    (PyCFunction)FloatToHex_HexToDouble, METH_VARARGS},
     {NULL,      NULL}       /* sentinel */
 };
 
