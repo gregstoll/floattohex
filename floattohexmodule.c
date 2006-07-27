@@ -48,7 +48,7 @@ FloatToHex_DoubleToHex(PyObject *self, PyObject *args)
 static PyObject *
 FloatToHex_HexToDouble(PyObject *self, PyObject *args)
 {
-    long long l;
+    unsigned long long l;
     if (!PyArg_ParseTuple(args, "L:hextodouble", &l))
         return NULL;
     double d = *((double *)&l);
