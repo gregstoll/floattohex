@@ -1,25 +1,4 @@
 //<![CDATA[
-var isMozilla;
-var xmlhttp;
-// for Mozilla, etc.
-if (window.XMLHttpRequest) {
-    isMozilla = true;
-}
-// for IE
-else if (window.ActiveXObject) {
-    isMozilla = false;
-}
-
-function getDOMText(nodes) {
-    var toReturn = "";
-    for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].nodeType == Node.TEXT_NODE) {
-            toReturn = toReturn + nodes[i].nodeValue;
-        }
-    }
-    return toReturn;
-}
-
 function HexToFloat(hex) {
     doRequest(floatToHexScriptName + '?action=hextofloat&hex=' + hex, true, processFloatResponse, 'GET', null);
 }
@@ -59,42 +38,6 @@ function processDoubleResponse() {
         document.getElementById('hexDouble').value = hexValue;
     }
 }
-function doRequest(url, async, callback, method, postData) {
-    if (isMozilla) {
-        xmlhttp = new XMLHttpRequest();
-        // http://www.onlamp.com/pub/a/onlamp/2005/05/19/xmlhttprequest.html
-        // Some versions of mozilla lock up without this, apparently.
-        if (xmlhttp.overrideMimeType) {
-            xmlhttp.overrideMimeType('text/xml');
-        }
-    } else {
-        try {
-            xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
-        } catch(e) {
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
-    }
-    if (async) {
-        xmlhttp.onreadystatechange = callback;
-    }
-    method = method.toUpperCase();
-    xmlhttp.open(method, url, async);
-    if (method == "GET") {
-        if (isMozilla) {
-            xmlhttp.send(null);
-        } else {
-            xmlhttp.send();
-        }
-    } else {
-        // We're doing POST.
-        xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-        xmlhttp.send(postData);
-    }
-    if (!async) {
-        callback();
-    }
-}
-
-
+// using doRequest() in gregcommon.js
 
 //]]>
