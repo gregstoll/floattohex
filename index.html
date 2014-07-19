@@ -1,7 +1,7 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
   <head>
-    <META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <META http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Floating Point to Hex Converter</title>
   </head>
   <body>
@@ -14,9 +14,9 @@
     <form action="javascript:void(0);">
 <!--         <p><input type="radio" name="endian" value="little" checked="checked" id="littleEndian"> <label for="littleEndian">Little endian (x86)</label> <input type="radio" name="endian" value="big" id="bigEndian"> <label for="bigEndian">Big endian (Motorola, SPARC)</label></p> -->
         <p><label for="hexFloat">Hex value:</label> <input type="text" name="hexFloat" id="hexFloat"><input type="button" value="Convert to float" onClick="return HexToFloat(form.hexFloat.value);"></p>
-        <p><label for="floatHex">Float value:</label> <input type="text" name="floatHex" id="floatHex"><input type="button" value="Convert to hex" onClick="return FloatToHex(form.floatHex.value);"</p>
+        <p><label for="floatHex">Float value:</label> <input type="text" name="floatHex" id="floatHex"><input type="button" value="Convert to hex" onClick="return FloatToHex(form.floatHex.value);"></p>
         <p style="margin-top: 50px;"><label for="hexDouble">Hex value:</label> <input type="text" name="hexDouble" id="hexDouble"><input type="button" value="Convert to double" onClick="return HexToDouble(form.hexDouble.value);"></p>
-        <p><label for="doubleHex">Double value:</label> <input type="text" name="doubleHex" id="doubleHex"><input type="button" value="Convert to hex" onClick="return DoubleToHex(form.doubleHex.value);"</p>
+        <p><label for="doubleHex">Double value:</label> <input type="text" name="doubleHex" id="doubleHex"><input type="button" value="Convert to hex" onClick="return DoubleToHex(form.doubleHex.value);"></p>
     </form>
     <p>Here are the <a href="http://www.python.org">Python</a> files that are needed to make your own:</p>
     <ul>
@@ -24,7 +24,7 @@
     <li><a href="floattohex.txt">floattohex.cgi</a></li>
     </ul>
   <h2>About this project</h2>
-  <p><a name="about"></a>I started looking for one of these because I
+  <p><a id="about"></a>I started looking for one of these because I
   thought it would be useful for work (turned out I didn't need it).  I found
   a <a href="http://www.lurklurk.org/Converter.html">Java applet version</a>,
   and thought it would be nice to make a lighter-weight solution.  I might
