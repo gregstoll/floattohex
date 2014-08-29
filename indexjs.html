@@ -129,19 +129,41 @@ with({p: BinaryParser.prototype}){
             for(var k, i = s.length, r = ""; i; r = ((k = s.charCodeAt(--i).toString(16 )).length - 1 ? k : "0" + k) + r);
             return r;
         }
+        function hex2bin(s){
+            for(var i = 0, l = s.length, r = ""; i < l; r += String.fromCharCode(parseInt(s.substr(i, 2), 16)), i += 2);
+            return r;
+        }
 
-        function FloatToHexDispatch(val) {
+        function FloatToHexDispatch(f) {
             if (document.getElementById('mode.new').checked) {
                 // TODO - why backwards? true = big endian
                 var bp = new BinaryParser(true);
-                var chars = bp.fromFloat(val);
+                var chars = bp.fromFloat(f);
                 var newVal = '0x';
                 // TODO - endian option
                 newVal += char2hex(chars);
                 document.getElementById('hexFloat').value = newVal;
+                document.getElementById('floatHex').value = f.toFixed(6);
             } else {
-                return FloatToHex(val);
+                return FloatToHex(f);
             }
+        }
+        function HexToFloatDispatch(h) {
+            if (document.getElementById('mode.new').checked) {
+                // TODO - why backwards? true = big endian
+                h = h.trim();
+                if (h.startsWith('0x') || h.startsWith('0X')) {
+                    h = h.substr(2);
+                }
+                // TODO - endian option
+                var num = hex2bin(h);
+                var bp = new BinaryParser(true);
+                var f = bp.toFloat(num);
+                document.getElementById('floatHex').value = f.toFixed(6);
+            } else {
+                return HexToFloat(f);
+            }
+
         }
     </script>
     <script type="text/javascript" src="/scripts/gregcommon.js"></script>
@@ -150,7 +172,7 @@ with({p: BinaryParser.prototype}){
     <form action="javascript:void(0);">
 <!--         <p><input type="radio" name="endian" value="little" checked="checked" id="littleEndian"> <label for="littleEndian">Little endian (x86)</label> <input type="radio" name="endian" value="big" id="bigEndian"> <label for="bigEndian">Big endian (Motorola, SPARC)</label></p> -->
 <p><label>Original <input type="radio" name="mode" value="orig" id="mode.orig" checked></label> <label>New <input type="radio" name="mode" value="new" id="mode.new"></label></p>
-        <p><label for="hexFloat">Hex value:</label> <input type="text" name="hexFloat" id="hexFloat"><input type="button" value="Convert to float" onClick="return HexToFloat(form.hexFloat.value);"></p>
+        <p><label for="hexFloat">Hex value:</label> <input type="text" name="hexFloat" id="hexFloat"><input type="button" value="Convert to float" onClick="return HexToFloatDispatch(form.hexFloat.value);"></p>
         <p><label for="floatHex">Float value:</label> <input type="text" name="floatHex" id="floatHex"><input type="button" value="Convert to hex" onClick="return FloatToHexDispatch(form.floatHex.value);"></p>
         <p style="margin-top: 50px;"><label for="hexDouble">Hex value:</label> <input type="text" name="hexDouble" id="hexDouble"><input type="button" value="Convert to double" onClick="return HexToDouble(form.hexDouble.value);"></p>
         <p><label for="doubleHex">Double value:</label> <input type="text" name="doubleHex" id="doubleHex"><input type="button" value="Convert to hex" onClick="return DoubleToHex(form.doubleHex.value);"></p>
