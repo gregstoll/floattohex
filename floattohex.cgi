@@ -38,7 +38,7 @@ if (action == 'floattohex'):
         h = h[0:2] + hex(int(h[2:3], 16) + 8)[2:] + h[3:]
     returnFloatHex(f, h)
 elif (action == 'hextofloat'):
-    h = str(form.getfirst('hex'))
+    h = str(form.getfirst('hex').replace(' ', ''))
     if (not h.startswith('0x')):
         h = '0x' + h
     # Handle cases that are too big for a long (won't convert to unsigned, it
