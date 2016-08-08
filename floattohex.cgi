@@ -5,7 +5,10 @@ import FloatToHex, cgi, sys
 def returnFloatHex(f, h):
     print "Content-type: text/xml\n\n"
     print "<values>\n"
-    print "<float>%f</float>\n" % f
+    if (f == 'ERROR'):
+        print "<float>ERROR</float>\n"
+    else:
+        print "<float>%f</float>\n" % f
     if (h.endswith('L') or h.endswith('l')):
         h = h[:-1]
     print "<hex>%s</hex>\n" % h
@@ -26,7 +29,10 @@ def returnDoubleHex(d, h):
 form = cgi.FieldStorage()
 action = form.getfirst('action')
 if (action == 'floattohex'):
-    f = float(form.getfirst('float'))
+    try:
+        f = float(form.getfirst('float'))
+    except:
+        returnFloatHex(form.getfirst('float'), 'ERROR')
     isNegative = False
     fToPass = f
     if (f < 0.0):
@@ -43,19 +49,28 @@ elif (action == 'hextofloat'):
         h = '0x' + h
     # Handle cases that are too big for a long (won't convert to unsigned, it
     # seems)
-    firstDigit = int(h[2:3], 16)
+    try:
+        firstDigit = int(h[2:3], 16)
+    except:
+        returnFloatHex('ERROR', form.getfirst('hex'))
     makeNegative = False
     hToPass = h
     if (firstDigit > 8):
         hToPass = h[0:2] + str(firstDigit - 8) + h[3:]
         makeNegative = True
-    i = int(hToPass[2:], 16)
+    try:
+        i = int(hToPass[2:], 16)
+    except:
+        returnFloatHex('ERROR', form.getfirst('hex'))
     f = FloatToHex.hextofloat(i)
     if (makeNegative):
         f = -1.0 * f
     returnFloatHex(f, h)
 elif (action == 'doubletohex'):
-    d = float(form.getfirst('double'))
+    try:
+        d = float(form.getfirst('double'))
+    except:
+        returnDoubleHex(form.getfirst('double'), 'ERROR')
     isNegative = False
     dToPass = d
     if (d < 0.0):
@@ -64,21 +79,33 @@ elif (action == 'doubletohex'):
     h = FloatToHex.doubletohex(dToPass)
     h = str(hex(h)).lower()
     if (isNegative):
-        h = h[0:2] + hex(int(h[2:3], 16) + 8)[2:] + h[3:]
+        try:
+            h = h[0:2] + hex(int(h[2:3], 16) + 8)[2:] + h[3:]
+        except:
+            returnDoubleHex(form.getfirst('double'), 'ERROR')
     returnDoubleHex(d, h)
 elif (action == 'hextodouble'):
-    h = str(form.getfirst('hex'))
+    try:
+        h = str(form.getfirst('hex').replace(' ', ''))
+    except:
+        returnDoubleHex('ERROR', form.getfirst('hex'))
     if (not h.startswith('0x')):
         h = '0x' + h
     # Handle cases that are too big for a long (won't convert to unsigned, it
     # seems)
-    firstDigit = int(h[2:3], 16)
+    try:
+        firstDigit = int(h[2:3], 16)
+    except:
+        returnDoubleHex('ERROR', form.getfirst('hex'))
     makeNegative = False
     hToPass = h
     if (firstDigit > 8):
         hToPass = h[0:2] + str(firstDigit - 8) + h[3:]
         makeNegative = True
-    i = int(hToPass[2:], 16)
+    try:
+        i = int(hToPass[2:], 16)
+    except:
+        returnDoubleHex('ERROR', form.getfirst('hex'))
     d = FloatToHex.hextodouble(i)
     if (makeNegative):
         d = -1.0 * d
