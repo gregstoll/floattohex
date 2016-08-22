@@ -38,7 +38,10 @@ if (action == 'floattohex'):
     if (f < 0.0):
         isNegative = True
         fToPass = -1.0 * f
-    h = FloatToHex.floattohex(fToPass)
+    try:
+        h = FloatToHex.floattohex(fToPass)
+    except:
+        returnFloatHex(form.getfirst('float'), 'ERROR')
     h = str(hex(h)).lower()
     if (isNegative):
         h = h[0:2] + hex(int(h[2:3], 16) + 8)[2:] + h[3:]
@@ -76,7 +79,10 @@ elif (action == 'doubletohex'):
     if (d < 0.0):
         isNegative = True
         dToPass = -1.0 * d
-    h = FloatToHex.doubletohex(dToPass)
+    try:
+        h = FloatToHex.doubletohex(dToPass)
+    except:
+        returnDoubleHex(form.getfirst('double'), 'ERROR')
     h = str(hex(h)).lower()
     if (isNegative):
         try:
