@@ -9,7 +9,7 @@ def returnFloatHex(f, h):
         print "<float>ERROR</float>\n"
     else:
         print "<float>%f</float>\n" % f
-    if (h.endswith('L') or h.endswith('l')):
+    if (h is not None and (h.endswith('L') or h.endswith('l'))):
         h = h[:-1]
     print "<hex>%s</hex>\n" % h
     print "</values>\n"
@@ -19,7 +19,7 @@ def returnDoubleHex(d, h):
     print "Content-type: text/xml\n\n"
     print "<values>\n"
     print "<double>" + str(d) + "</double>\n"
-    if (h.endswith('L') or h.endswith('l')):
+    if (h is not None and (h.endswith('L') or h.endswith('l'))):
         h = h[:-1]
     print "<hex>%s</hex>\n" % h
     print "</values>\n"
