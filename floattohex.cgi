@@ -63,9 +63,9 @@ elif (action == 'hextofloat'):
         makeNegative = True
     try:
         i = int(hToPass[2:], 16)
+        f = FloatToHex.hextofloat(i)
     except:
         returnFloatHex('ERROR', form.getfirst('hex'))
-    f = FloatToHex.hextofloat(i)
     if (makeNegative):
         f = -1.0 * f
     returnFloatHex(f, h)
@@ -110,9 +110,9 @@ elif (action == 'hextodouble'):
         makeNegative = True
     try:
         i = int(hToPass[2:], 16)
+        d = FloatToHex.hextodouble(i)
     except:
         returnDoubleHex('ERROR', form.getfirst('hex'))
-    d = FloatToHex.hextodouble(i)
     if (makeNegative):
         d = -1.0 * d
     returnDoubleHex(d, h)
