@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <META http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="msApplication-ID" content="57039gregstoll.com.FloattoHex"/>
+    <meta name="msApplication-PackageFamilyName" content="57039gregstoll.com.FloattoHex_mrfc7nnpdd326"/>
+    <title>Floating Point to Hex Converter</title>
+  </head>
+  <body>
+    <script type="text/javascript">
+        var floatToHexScriptName = "floattohex.cgi";
+    </script>
+    <script type="text/javascript" src="/scripts/gregcommon.js"></script>
+    <script type="text/javascript" src="floattohexjs.js"></script>
+    <h1>Floating Point to Hex Converter</h1>
+    <div id="root"></div>
+    <script src="dist/bundle.js"></script>
+    <form action="javascript:void(0);">
+<!--         <p><input type="radio" name="endian" value="little" checked="checked" id="littleEndian"> <label for="littleEndian">Little endian (x86)</label> <input type="radio" name="endian" value="big" id="bigEndian"> <label for="bigEndian">Big endian (Motorola, SPARC)</label></p> -->
+        <p><label for="hexFloat">Hex value:</label> <input type="text" name="hexFloat" id="hexFloat"><input type="button" value="Convert to float" onClick="return HexToFloat(form.hexFloat.value);"></p>
+        <p><label for="floatHex">Float value:</label> <input type="text" name="floatHex" id="floatHex"><input type="button" value="Convert to hex" onClick="return FloatToHex(form.floatHex.value);"></p>
+        <p style="margin-top: 50px;"><label for="hexDouble">Hex value:</label> <input type="text" name="hexDouble" id="hexDouble"><input type="button" value="Convert to double" onClick="return HexToDouble(form.hexDouble.value);"></p>
+        <p><label for="doubleHex">Double value:</label> <input type="text" name="doubleHex" id="doubleHex"><input type="button" value="Convert to hex" onClick="return DoubleToHex(form.doubleHex.value);"></p>
+    </form>
+  <p>Check out the new Windows and Windows Phone apps!</p>
+  <p><a href="http://apps.microsoft.com/windows/app/float-to-hex/2539426c-b90d-47ef-b78c-b7f84c0829d5"><img src="DownloadWindows.png" title="Download from the Windows Store" alt="Download from the Windows Store"></a> <a href="http://www.windowsphone.com/s?appid=7a7612da-59cc-485b-944a-d4d23a467b05"><img src="DownloadWP.png" title="Download from the Windows Phone Store" alt="Download from the Windows Phone Store"></a></p>
+
+    <p>Here are the <a href="http://www.python.org">Python</a> files that are needed to make your own:</p>
+    <ul>
+    <li><a href="floattohexmodule.txt">floattohexmodule.c</a> (this is the C file that compiles into a Python module)</li>
+    <li><a href="floattohex.txt">floattohex.cgi</a></li>
+    </ul>
+  <h2>About this project</h2>
+  <p><a id="about"></a>I started looking for one of these because I
+  thought it would be useful for work (turned out I didn't need it).  I found
+  a <a href="http://www.lurklurk.org/Converter.html">Java applet version</a>,
+  and thought it would be nice to make a lighter-weight solution.  I might
+  add support for endianness, too.</p>
+  <p><a href="http://en.wikipedia.org/wiki/IEEE_floating-point_standard">
+  Information about the IEEE 754 floating-point standard from Wikipedia</a></p>
+  <p><a href="http://gregstoll.dyndns.org">Greg's home page</a></p>
+  <p>
+    <a href="https://validator.w3.org/check?uri=referer"><img
+        src="https://www.w3.org/Icons/valid-html401"
+        alt="Valid HTML 4.01 Strict" height="31" width="88"></a>
+  </p>
+<!--#include virtual="/endOfBody.html"-->
+  </body>
+</html>
