@@ -1,1 +1,2 @@
-npm run build - builds minified and fast
+npm run dev - builds dev mode
+npm run build - builds minified

@@ -6,9 +6,10 @@ module.exports = {
   devtool: 'cheap-module-eval-source-map',
   entry: [
     // necessary for hot reloading with IE:
-    'eventsource-polyfill',
+    //'eventsource-polyfill',
     // listen to code updates emitted by hot middleware:
-    'webpack-hot-middleware/client',
+    //'webpack-hot-middleware/client',
+    'whatwg-fetch',
     // your code:
     './src/index'
   ],
