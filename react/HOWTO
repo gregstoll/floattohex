@@ -1,2 +1,12 @@
+also try create-react-app:
+ create-react-app my-app
+ cd my-ap
+ npm start
+see https://github.com/facebookincubator/create-react-app
+
+npm install - installs all the dependencies
+
+npm install --save style-loader less less-loader css-loader - installs .less stuff
+
 npm run dev - builds dev mode
 npm run build - builds minified
