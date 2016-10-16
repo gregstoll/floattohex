@@ -14,6 +14,8 @@ class HexFloatBreakdown extends Component {
       this.getMantissaExpression = this.getMantissaExpression.bind(this);
       this.getExponentBits = this.getExponentBits.bind(this);
       this.getMantissaBits = this.getMantissaBits.bind(this);
+      this.classNameFromBitIndex = this.classNameFromBitIndex.bind(this);
+      this.wrapBitsInClassName = this.wrapBitsInClassName.bind(this);
   }
   getSignExpression(bits, phase) {
       var bit = bits[0];
@@ -43,7 +45,7 @@ class HexFloatBreakdown extends Component {
       var expressionBits = this.getMantissaBits(bits).join('');
       if (phase == 0)
       {
-          return "1." + expressionBits;
+          return "1." + expressionBits + " (binary)";
       }
       // can't parse float in base 2 :-(
       var value = parseInt(expressionBits, 2) / Math.pow(2, this.props.fractionBits);
@@ -55,6 +57,29 @@ class HexFloatBreakdown extends Component {
   getMantissaBits(bits) {
       return bits.slice(1+this.props.exponentBits);
   }
+  classNameFromBitIndex(index) {
+      return "bitGroup " + ((Math.floor(index/4) % 2 == 0) ? "even" : "odd");
+  }
+  wrapBitsInClassName(bits, startingIndex) {
+      var spans = [];
+      var curSpanText = bits[0];
+      var curClassName = this.classNameFromBitIndex(startingIndex);
+      for (var i = 1; i < bits.length; ++i) {
+          var newClassName = this.classNameFromBitIndex(startingIndex + i);
+          if (curClassName == newClassName) {
+              // accumulate
+              curSpanText += bits[i];
+          }
+          else {
+              // new span
+              spans.push(<span className={curClassName} key={i}>{curSpanText}</span>);
+              curClassName = newClassName;
+              curSpanText = bits[i];
+          }
+      }
+      spans.push(<span className={curClassName} key="last">{curSpanText}</span>);
+      return spans;
+  }
   render() {
     if (this.props.hexValue === '' || this.props.hexValue === 'ERROR'
       || this.props.floatingValue === '' || this.props.floatingValue === 'ERROR'
@@ -64,7 +89,7 @@ class HexFloatBreakdown extends Component {
     }
     var hexDigitsTds = [];
     for (var i = 0; i < this.props.hexDigits; ++i) {
-        hexDigitsTds.push(<td colSpan="4" className="hexDigitCollapsed" key={"hexDigitCollapsed" + i}>{this.props.hexValue.substr(2 + i, 1)}</td>);
+        hexDigitsTds.push(<td colSpan="4" className={"hexDigitCollapsed " + this.classNameFromBitIndex(4*i)} key={"hexDigitCollapsed" + i}>{this.props.hexValue.substr(2 + i, 1)}</td>);
     }
     var binaryDigitsTds = [];
     var bits = [];
@@ -75,13 +100,13 @@ class HexFloatBreakdown extends Component {
         }
         for (var j = 0; j < 4; ++j) {
             bits.push(binaryString.substr(j, 1));
-            binaryDigitsTds.push(<td className="binaryDigit" key={"binaryDigit" + (4*i+j)}>{binaryString.substr(j, 1)}</td>);
+            binaryDigitsTds.push(<td className={"binaryDigit " + this.classNameFromBitIndex(4*i + j)} key={"binaryDigit" + (4*i+j)}>{binaryString.substr(j, 1)}</td>);
         }
     }
     var binaryBreakdownTds = [];
-    binaryBreakdownTds.push(<td className="binaryBreakdown sign" key="sign">{bits[0]}</td>);
-    binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.getExponentBits(bits)}</td>);
-    binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.getMantissaBits(bits)}</td>);
+    binaryBreakdownTds.push(<td className={"binaryBreakdown sign " + this.classNameFromBitIndex(0)} key="sign">{bits[0]}</td>);
+    binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(bits), 1)}</td>);
+    binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(bits), 1 + this.props.exponentBits)}</td>);
 
     return (
       <table>
