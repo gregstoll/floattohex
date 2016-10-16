@@ -1,5 +1,3 @@
-finish
-- show parts +-1 exponent, 1.mantissa
-- convert parts to expression -1 * 2^(exponent - 127) * 1.mantissa
-
 allow click on one bit to toggle it
+
+shade bits to emphasize correspondence with hex digits

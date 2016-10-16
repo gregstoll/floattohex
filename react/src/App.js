@@ -9,6 +9,51 @@ require('./style.less')
 class HexFloatBreakdown extends Component {
   constructor(props) {
       super(props);
+      this.getSignExpression = this.getSignExpression.bind(this);
+      this.getExponentExpression = this.getExponentExpression.bind(this);
+      this.getMantissaExpression = this.getMantissaExpression.bind(this);
+      this.getExponentBits = this.getExponentBits.bind(this);
+      this.getMantissaBits = this.getMantissaBits.bind(this);
+  }
+  getSignExpression(bits, phase) {
+      var bit = bits[0];
+      var one = bit == 1 ? "-1" : "+1";
+      if (phase > 0) {
+          one += " *";
+      }
+      return one;
+  }
+  getExponentExpression(bits, phase) {
+      var expressionBits = this.getExponentBits(bits).join('');
+      var exponent = parseInt(expressionBits, 2);
+      if (phase == 0)
+      {
+          return exponent;
+      }
+      if (phase == 1)
+      {
+          return "2^(" + exponent + " - " + this.props.exponentBias + ") *";
+      }
+      if (phase == 2)
+      {
+          return Math.pow(2, exponent - this.props.exponentBias) + " *";
+      }
+  }
+  getMantissaExpression(bits, phase) {
+      var expressionBits = this.getMantissaBits(bits).join('');
+      if (phase == 0)
+      {
+          return "1." + expressionBits;
+      }
+      // can't parse float in base 2 :-(
+      var value = parseInt(expressionBits, 2) / Math.pow(2, this.props.fractionBits);
+      return 1.0 + value;
+  }
+  getExponentBits(bits) {
+      return bits.slice(1,1+this.props.exponentBits);
+  }
+  getMantissaBits(bits) {
+      return bits.slice(1+this.props.exponentBits);
   }
   render() {
     if (this.props.hexValue === '' || this.props.hexValue === 'ERROR'
@@ -35,8 +80,8 @@ class HexFloatBreakdown extends Component {
     }
     var binaryBreakdownTds = [];
     binaryBreakdownTds.push(<td className="binaryBreakdown sign" key="sign">{bits[0]}</td>);
-    binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{bits.slice(1,1+this.props.exponentBits)}</td>);
-    binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{bits.slice(1+this.props.exponentBits)}</td>);
+    binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.getExponentBits(bits)}</td>);
+    binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.getMantissaBits(bits)}</td>);
 
     return (
       <table>
@@ -45,6 +90,10 @@ class HexFloatBreakdown extends Component {
           <tr>{hexDigitsTds}</tr>
           <tr>{binaryDigitsTds}</tr>
           <tr>{binaryBreakdownTds}</tr>
+          <tr><td colSpan={3}>sign</td><td colSpan={1+this.props.exponentBits-3}>exponent</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>mantissa</td></tr>
+          <tr><td colSpan={3}>{this.getSignExpression(bits, 0)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(bits, 0)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(bits, 0)}</td></tr>
+          <tr><td colSpan={3}>{this.getSignExpression(bits, 1)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(bits, 1)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(bits, 1)}</td></tr>
+          <tr><td colSpan={3}>{this.getSignExpression(bits, 2)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(bits, 2)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(bits, 2)}</td></tr>
           <tr><td colSpan={this.props.hexDigits * 4}>{this.props.floatingValue}</td></tr>
         </tbody>
       </table>
@@ -56,6 +105,7 @@ HexFloatBreakdown.propTypes = {
     floatingValue: React.PropTypes.string.isRequired,
     hexDigits: React.PropTypes.number.isRequired,
     exponentBits: React.PropTypes.number.isRequired,
+    exponentBias: React.PropTypes.number.isRequired,
     fractionBits: React.PropTypes.number.isRequired,
 };
 
@@ -120,7 +170,7 @@ class HexConverter extends Component {
             <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
             <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={this.changeHexValue}/><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={this.convertToFloating}/>
         </p>
-        <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} hexDigits={this.props.hexDigits} exponentBits={this.props.exponentBits} fractionBits={this.props.fractionBits}/>
+        <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} hexDigits={this.props.hexDigits} exponentBits={this.props.exponentBits} fractionBits={this.props.fractionBits} exponentBias={this.props.exponentBias}/>
         <p>
             <label htmlFor={this.props.floatType.toLowerCase() + 'Hex'}>{this.props.floatType + ' value:'}</label>
             <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={this.changeFloatingValue}/><input type="button" value='Convert to hex' onClick={this.convertToHex}/>
@@ -134,6 +184,7 @@ HexConverter.propTypes = {
     hexDigits: React.PropTypes.number.isRequired,
     exponentBits: React.PropTypes.number.isRequired,
     fractionBits: React.PropTypes.number.isRequired,
+    exponentBias: React.PropTypes.number.isRequired,
     marginTop: React.PropTypes.number,
 };
 
@@ -141,8 +192,8 @@ export class App extends Component {
   render() {
     return (
       <div>
-        <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23}/>
-        <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} />
+        <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127}/>
+        <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023}/>
       </div>
     );
   }
