@@ -7,6 +7,8 @@ def returnFloatHex(f, h):
     print "<values>\n"
     if (f == 'ERROR'):
         print "<float>ERROR</float>\n"
+    elif not isinstance(f, float):
+        print "<float>%s</float>\n" % f
     else:
         print "<float>%f</float>\n" % f
     if (h is not None and (h.endswith('L') or h.endswith('l'))):
