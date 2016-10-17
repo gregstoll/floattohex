@@ -28,8 +28,8 @@ FloatToHex_FloatToHex(PyObject *self, PyObject *args)
 static PyObject *
 FloatToHex_HexToFloat(PyObject *self, PyObject *args)
 {
-    int i;
-    if (!PyArg_ParseTuple(args, "i:hextofloat", &i))
+    unsigned int i;
+    if (!PyArg_ParseTuple(args, "I:hextofloat", &i))
         return NULL;
     float f = *((float *)&i);
     return Py_BuildValue("f", f);

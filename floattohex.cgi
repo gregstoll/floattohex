@@ -10,7 +10,7 @@ def returnFloatHex(f, h):
     elif not isinstance(f, float):
         print "<float>%s</float>\n" % f
     else:
-        print "<float>%f</float>\n" % f
+        print "<float>%g</float>\n" % f
     if (h is not None and (h.endswith('L') or h.endswith('l'))):
         h = h[:-1]
     print "<hex>%s</hex>\n" % h
