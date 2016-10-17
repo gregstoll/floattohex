@@ -3,12 +3,12 @@ import { NICE, SUPER_NICE } from './colors';
 
 // https://stackoverflow.com/questions/34107925/node-referenceerror-promise-is-not-defined
 var Promise = require('promise')
-
 require('./style.less')
 
 class HexFloatBreakdown extends Component {
   constructor(props) {
       super(props);
+
       this.getSignExpression = this.getSignExpression.bind(this);
       this.getExponentExpression = this.getExponentExpression.bind(this);
       this.getMantissaExpression = this.getMantissaExpression.bind(this);
@@ -137,16 +137,22 @@ HexFloatBreakdown.propTypes = {
 class HexConverter extends Component {
   constructor(props) {
       super(props);
-      this.state = {'hexValue': "", 'floatingValue': '', 'calculatedHexValue': "", 'calculatedFloatingValue': ""}; 
+      //console.log('HexConverter: ' + props);
+      this.state = {'hexValue': "", 'floatingValue': '', 'calculatedHexValue': "", 'calculatedFloatingValue': ""};
       this.formStyle = {}
       if (props.marginTop) {
           this.formStyle['marginTop'] = props.marginTop + 'px';
       }
+      this.topLevelRef = null;
+
       this.changeHexValue = this.changeHexValue.bind(this);
       this.changeFloatingValue = this.changeFloatingValue.bind(this);
       this.doConvert = this.doConvert.bind(this);
       this.convertToHex = this.convertToHex.bind(this);
       this.convertToFloating = this.convertToFloating.bind(this);
+      this.animationEndListener = this.animationEndListener.bind(this);
+      this.setTopLevelRef = this.setTopLevelRef.bind(this);
+      this.addFlash = this.addFlash.bind(this);
   }
   changeHexValue(e) {
       this.setState({'hexValue': e.target.value});
@@ -178,8 +184,11 @@ class HexConverter extends Component {
           var hexElem = xmlDoc.documentElement.getElementsByTagName("hex")[0];
           var hexValue = hexElem.childNodes[0].nodeValue;
           var floatingElem = xmlDoc.documentElement.getElementsByTagName(that.props.floatType.toLowerCase())[0];
+          while (hexValue.length < that.props.hexDigits+2) {
+              hexValue = hexValue.substr(0, 2) + "0" + hexValue.substr(2);
+          }
           var floatingValue = floatingElem.childNodes[0].nodeValue;
-          that.setState({'hexValue': hexValue, 'floatingValue': floatingValue, 'calculatedHexValue': hexValue, 'calculatedFloatingValue': floatingValue});
+          that.setState({'hexValue': hexValue, 'floatingValue': floatingValue, 'calculatedHexValue': hexValue, 'calculatedFloatingValue': floatingValue, 'flash': true});
       });
   }
   convertToHex() {
@@ -188,9 +197,37 @@ class HexConverter extends Component {
   convertToFloating() {
       this.doConvert('action=hexto' + this.props.floatType.toLowerCase() + '&hex=' + this.state.hexValue);
   }
+  setTopLevelRef(c) {
+      this.topLevelRef = c;
+  }
+  addFlash() {
+      if (this.topLevelRef) {
+          this.topLevelRef.addEventListener("animationend", this.animationEndListener, false);
+          this.topLevelRef.classList.add("flash");
+      }
+  }
+  componentDidUpdate(prevProps, prevState) {
+      if (this.topLevelRef) {
+          if ((this.state.calculatedHexValue && this.state.calculatedHexValue != prevState.calculatedHexValue) ||
+              (this.state.calculatedFloatingValue && this.state.calculatedFloatingValue != prevState.calculatedFloatingValue)) {
+              if (this.topLevelRef.classList.contains("flash")) {
+                  this.topLevelRef.classList.remove("flash");
+                  setTimeout(this.addFlash, 10);
+              } else {
+                  this.addFlash();
+              }
+          }
+      }
+  }
+  animationEndListener(e) {
+      if (e.type == "animationend") {
+          this.topLevelRef.classList.remove("flash");
+          this.topLevelRef.removeEventListener("animationend", this.animationEndListener, false);
+      }
+  }
   render() {
     return (
-      <form action="javascript:void(0);" style={this.formStyle}>
+      <form action="javascript:void(0);" style={this.formStyle} ref={this.setTopLevelRef}>
         <p>
             <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
             <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={this.changeHexValue}/><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={this.convertToFloating}/>
@@ -211,6 +248,7 @@ HexConverter.propTypes = {
     fractionBits: React.PropTypes.number.isRequired,
     exponentBias: React.PropTypes.number.isRequired,
     marginTop: React.PropTypes.number,
+    flash: React.PropTypes.bool,
 };
 
 export class App extends Component {

@@ -12,3 +12,21 @@ td.binaryBreakdown {
 }
 .bitGroup.even {
 }
+
+// http://stackoverflow.com/questions/16791851/a-flash-of-color-using-pure-css-transitions
+// http://jsbin.com/imonab/2/edit?html,css,js,output
+@keyframes flashColor {
+    0% {
+        background-color: yellow;
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.flash {
+    animation-name: flashColor;
+    animation-duration: 500ms;
+    animation-iteration-count: 1;
+    animation-timing-function: linear;
+}

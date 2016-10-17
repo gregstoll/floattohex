@@ -1,5 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
+var autoprefixer = require('autoprefixer');
 
 module.exports = {
   devtool: 'source-map',
@@ -33,8 +34,9 @@ module.exports = {
     },
     {
       test: /\.less$/,
-      loader: "style!css!less"
+      loader: "style!css!less!postcss-loader"
     }
     ]
-  }
+  },
+  postcss: [ autoprefixer({ browsers: ['last 2 versions'] }) ]
 };
