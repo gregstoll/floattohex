@@ -9,6 +9,17 @@ class HexFloatBreakdown extends Component {
   constructor(props) {
       super(props);
 
+      this.bits = [];
+      for (var i = 0; i < this.props.hexDigits; ++i) {
+          var binaryString = parseInt(this.props.hexValue.substr(2 + i, 1), 16).toString(2);
+          while (binaryString.length < 4) {
+              binaryString = "0" + binaryString;
+          }
+          for (var j = 0; j < 4; ++j) {
+              this.bits.push(binaryString.substr(j, 1));
+          }
+      }
+
       this.getSignExpression = this.getSignExpression.bind(this);
       this.getExponentExpression = this.getExponentExpression.bind(this);
       this.getMantissaExpression = this.getMantissaExpression.bind(this);
@@ -17,16 +28,16 @@ class HexFloatBreakdown extends Component {
       this.classNameFromBitIndex = this.classNameFromBitIndex.bind(this);
       this.wrapBitsInClassName = this.wrapBitsInClassName.bind(this);
   }
-  getSignExpression(bits, phase) {
-      var bit = bits[0];
+  getSignExpression(phase) {
+      var bit = this.bits[0];
       var one = bit == 1 ? "-1" : "+1";
       if (phase > 0) {
           one += " *";
       }
       return one;
   }
-  getExponentExpression(bits, phase) {
-      var expressionBits = this.getExponentBits(bits).join('');
+  getExponentExpression(phase) {
+      var expressionBits = this.getExponentBits().join('');
       var exponent = parseInt(expressionBits, 2);
       if (phase == 0)
       {
@@ -41,8 +52,8 @@ class HexFloatBreakdown extends Component {
           return Math.pow(2, exponent - this.props.exponentBias) + " *";
       }
   }
-  getMantissaExpression(bits, phase) {
-      var expressionBits = this.getMantissaBits(bits).join('');
+  getMantissaExpression(phase) {
+      var expressionBits = this.getMantissaBits().join('');
       if (phase == 0)
       {
           return "1." + expressionBits + " (binary)";
@@ -51,11 +62,11 @@ class HexFloatBreakdown extends Component {
       var value = parseInt(expressionBits, 2) / Math.pow(2, this.props.fractionBits);
       return 1.0 + value;
   }
-  getExponentBits(bits) {
-      return bits.slice(1,1+this.props.exponentBits);
+  getExponentBits() {
+      return this.bits.slice(1,1+this.props.exponentBits);
   }
-  getMantissaBits(bits) {
-      return bits.slice(1+this.props.exponentBits);
+  getMantissaBits() {
+      return this.bits.slice(1+this.props.exponentBits);
   }
   classNameFromBitIndex(index) {
       return "bitGroup " + ((Math.floor(index/4) % 2 == 0) ? "even" : "odd");
@@ -91,23 +102,27 @@ class HexFloatBreakdown extends Component {
     for (var i = 0; i < this.props.hexDigits; ++i) {
         hexDigitsTds.push(<td colSpan="4" className={"hexDigitCollapsed " + this.classNameFromBitIndex(4*i)} key={"hexDigitCollapsed" + i}>{this.props.hexValue.substr(2 + i, 1)}</td>);
     }
-    var binaryDigitsTds = [];
-    var bits = [];
+    this.bits = [];
     for (var i = 0; i < this.props.hexDigits; ++i) {
         var binaryString = parseInt(this.props.hexValue.substr(2 + i, 1), 16).toString(2);
         while (binaryString.length < 4) {
             binaryString = "0" + binaryString;
         }
         for (var j = 0; j < 4; ++j) {
-            bits.push(binaryString.substr(j, 1));
-            binaryDigitsTds.push(<td className={"binaryDigit " + this.classNameFromBitIndex(4*i + j)} key={"binaryDigit" + (4*i+j)}>{binaryString.substr(j, 1)}</td>);
+            this.bits.push(binaryString.substr(j, 1));
         }
     }
+    var binaryDigitsTds = [];
+    for (var i = 0; i < this.bits.length; ++i) {
+        binaryDigitsTds.push(<td className={"binaryDigit " + this.classNameFromBitIndex(i)} key={"binaryDigit" + i}>{this.bits[i]}</td>);
+    }
     var binaryBreakdownTds = [];
-    binaryBreakdownTds.push(<td className={"binaryBreakdown sign " + this.classNameFromBitIndex(0)} key="sign">{bits[0]}</td>);
-    binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(bits), 1)}</td>);
-    binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(bits), 1 + this.props.exponentBits)}</td>);
+    binaryBreakdownTds.push(<td className={"binaryBreakdown sign " + this.classNameFromBitIndex(0)} key="sign">{this.bits[0]}</td>);
+    binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(), 1)}</td>);
+    binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(), 1 + this.props.exponentBits)}</td>);
 
+    // TODO - denormalized
+    //if (
     return (
       <table>
         <tbody>
@@ -116,9 +131,9 @@ class HexFloatBreakdown extends Component {
           <tr>{binaryDigitsTds}</tr>
           <tr>{binaryBreakdownTds}</tr>
           <tr><td colSpan={3}>sign</td><td colSpan={1+this.props.exponentBits-3}>exponent</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>mantissa</td></tr>
-          <tr><td colSpan={3}>{this.getSignExpression(bits, 0)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(bits, 0)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(bits, 0)}</td></tr>
-          <tr><td colSpan={3}>{this.getSignExpression(bits, 1)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(bits, 1)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(bits, 1)}</td></tr>
-          <tr><td colSpan={3}>{this.getSignExpression(bits, 2)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(bits, 2)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(bits, 2)}</td></tr>
+          <tr><td colSpan={3}>{this.getSignExpression(0)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(0)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(0)}</td></tr>
+          <tr><td colSpan={3}>{this.getSignExpression(1)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(1)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(1)}</td></tr>
+          <tr><td colSpan={3}>{this.getSignExpression(2)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(2)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(2)}</td></tr>
           <tr><td colSpan={this.props.hexDigits * 4}>{this.props.floatingValue}</td></tr>
         </tbody>
       </table>
