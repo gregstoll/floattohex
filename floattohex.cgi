@@ -3,28 +3,28 @@
 import FloatToHex, cgi, sys
 
 def returnFloatHex(f, h):
-    print "Content-type: text/xml\n\n"
-    print "<values>\n"
+    print "Content-type: text/xml\n"
+    print "<values>"
     if (f == 'ERROR'):
-        print "<float>ERROR</float>\n"
+        print "<float>ERROR</float>"
     elif not isinstance(f, float):
-        print "<float>%s</float>\n" % f
+        print "<float>%s</float>" % f
     else:
-        print "<float>%g</float>\n" % f
+        print "<float>%g</float>" % f
     if (h is not None and (h.endswith('L') or h.endswith('l'))):
         h = h[:-1]
-    print "<hex>%s</hex>\n" % h
-    print "</values>\n"
+    print "<hex>%s</hex>" % h
+    print "</values>"
     sys.exit(0)
 
 def returnDoubleHex(d, h):
-    print "Content-type: text/xml\n\n"
-    print "<values>\n"
-    print "<double>" + str(d) + "</double>\n"
+    print "Content-type: text/xml\n"
+    print "<values>"
+    print "<double>" + str(d) + "</double>"
     if (h is not None and (h.endswith('L') or h.endswith('l'))):
         h = h[:-1]
-    print "<hex>%s</hex>\n" % h
-    print "</values>\n"
+    print "<hex>%s</hex>" % h
+    print "</values>"
     sys.exit(0)
 
 
