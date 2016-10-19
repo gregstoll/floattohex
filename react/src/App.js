@@ -5,6 +5,56 @@ import { NICE, SUPER_NICE } from './colors';
 var Promise = require('promise')
 require('./style.less')
 
+// adapted from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
+  /**
+   * Decimal adjustment of a number.
+   *
+   * @param {String}  type  The type of adjustment.
+   * @param {Number}  value The number.
+   * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
+   * @returns {Number} The adjusted value.
+   */
+  /*function decimalAdjust(type, value, exp) {
+    // If the exp is undefined or zero...
+    if (typeof exp === 'undefined' || +exp === 0) {
+      return Math[type](value);
+    }
+    value = +value;
+    exp = +exp;
+    // If the value is not a number or the exp is not an integer...
+    if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+      return NaN;
+    }
+    // Shift
+    value = value.toString().split('e');
+    var origPower = value[1] ? (+value[1]) : 0;
+    value = Math[type](+(value[0] + 'e' + (-exp)));
+    //value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+    // Shift back
+    value = value.toString().split('e');
+    return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+  }
+
+  // Decimal round
+  if (!Math.round10) {
+    Math.round10 = function(value, exp) {
+      return decimalAdjust('round', value, exp);
+    };
+  }
+  // Decimal floor
+  if (!Math.floor10) {
+    Math.floor10 = function(value, exp) {
+      return decimalAdjust('floor', value, exp);
+    };
+  }
+  // Decimal ceil
+  if (!Math.ceil10) {
+    Math.ceil10 = function(value, exp) {
+      return decimalAdjust('ceil', value, exp);
+    };
+  }
+  */
+
 class HexFloatBreakdown extends Component {
   constructor(props) {
       super(props);
@@ -68,7 +118,8 @@ class HexFloatBreakdown extends Component {
           if (this.denormalizedZeros) {
               power = 1 - this.props.exponentBias;
           }
-          return Math.pow(2, power) + " *";
+          //return Math.round10(Math.pow(2, power), -1 * this.props.decimalPrecision) + " *";
+          return Math.pow(2, power).toPrecision(this.props.decimalPrecision) + " *";
       }
   }
   getMantissaExpression(phase) {
@@ -153,7 +204,7 @@ class HexFloatBreakdown extends Component {
     this.denormalizedZeros = this.getExponentBits().reduce((pre, cur) => pre && (cur == 0), true);
     this.denormalizedOnes = this.getExponentBits().reduce((pre, cur) => pre && (cur == 1), true);
     return (
-      <table>
+      <table className="hexFloat">
         <tbody>
           <tr><td colSpan={this.props.hexDigits * 4}>{this.props.hexValue}</td></tr>
           <tr>{hexDigitsTds}</tr>
@@ -176,6 +227,7 @@ HexFloatBreakdown.propTypes = {
     exponentBits: React.PropTypes.number.isRequired,
     exponentBias: React.PropTypes.number.isRequired,
     fractionBits: React.PropTypes.number.isRequired,
+    decimalPrecision: React.PropTypes.number.isRequired,
 };
 
 class HexConverter extends Component {
@@ -276,7 +328,7 @@ class HexConverter extends Component {
             <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
             <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={this.changeHexValue}/><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={this.convertToFloating}/>
         </p>
-        <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} hexDigits={this.props.hexDigits} exponentBits={this.props.exponentBits} fractionBits={this.props.fractionBits} exponentBias={this.props.exponentBias}/>
+        <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} {...this.props}/>
         <p>
             <label htmlFor={this.props.floatType.toLowerCase() + 'Hex'}>{this.props.floatType + ' value:'}</label>
             <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={this.changeFloatingValue}/><input type="button" value='Convert to hex' onClick={this.convertToHex}/>
@@ -291,6 +343,7 @@ HexConverter.propTypes = {
     exponentBits: React.PropTypes.number.isRequired,
     fractionBits: React.PropTypes.number.isRequired,
     exponentBias: React.PropTypes.number.isRequired,
+    decimalPrecision: React.PropTypes.number.isRequired,
     marginTop: React.PropTypes.number,
     flash: React.PropTypes.bool,
 };
@@ -299,8 +352,8 @@ export class App extends Component {
   render() {
     return (
       <div>
-        <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127}/>
-        <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023}/>
+        <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9}/>
+        <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17}/>
       </div>
     );
   }

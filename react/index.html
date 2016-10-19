@@ -1,12 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <META http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="msApplication-ID" content="57039gregstoll.com.FloattoHex"/>
     <meta name="msApplication-PackageFamilyName" content="57039gregstoll.com.FloattoHex_mrfc7nnpdd326"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/bootstrap.min.css">
+    <link rel="stylesheet" href="/bootstrap-theme.min.css">
+    <script type="text/javascript" src="/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/mybootstrap.css">
+
     <title>Floating Point to Hex Converter</title>
   </head>
   <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">gregstoll.com</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/mobile/">Mobile apps</a></li>
+            <li><a href="/gallery/">Pictures</a></li>
+            <li><a href="/aboutme.html">About me</a></li>
+            <li><a href="/resumes.html">Resume</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div id="container">
     <h1>Floating Point to Hex Converter</h1>
     <div id="root"></div>
     <script src="dist/bundle.js"></script>
@@ -19,19 +51,12 @@
     <li><a href="floattohex.txt">floattohex.cgi</a></li>
     </ul>
   <h2>About this project</h2>
-  <p><a id="about"></a>I started looking for one of these because I
-  thought it would be useful for work (turned out I didn't need it).  I found
-  a <a href="http://www.lurklurk.org/Converter.html">Java applet version</a>,
-  and thought it would be nice to make a lighter-weight solution.  I might
-  add support for endianness, too.</p>
-  <p><a href="http://en.wikipedia.org/wiki/IEEE_floating-point_standard">
+  <p><a id="about"></a>Just a handy way to convert and visualize
+  floating-point numbers!</p>
+  <p><a href="https://en.wikipedia.org/wiki/IEEE_floating-point_standard">
   Information about the IEEE 754 floating-point standard from Wikipedia</a></p>
-  <p><a href="http://gregstoll.dyndns.org">Greg's home page</a></p>
-  <p>
-    <a href="https://validator.w3.org/check?uri=referer"><img
-        src="https://www.w3.org/Icons/valid-html401"
-        alt="Valid HTML 4.01 Strict" height="31" width="88"></a>
-  </p>
-<!--#include virtual="/endOfBody.html"-->
+  <p><a href="/">Greg's home page</a></p>
+  <!--#include virtual="/endOfBody.html"-->
+  </div>
   </body>
 </html>
