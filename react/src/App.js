@@ -41,26 +41,55 @@ class HexFloatBreakdown extends Component {
       var exponent = parseInt(expressionBits, 2);
       if (phase == 0)
       {
-          return exponent;
+          if (this.denormalizedZeros) {
+              return {__html: exponent + ' <b>denormalized</b>'};
+          }
+          else if (this.denormalizedOnes) {
+              return {__html: exponent + ' <b>special</b>'};
+          }
+          return {__html: exponent};
       }
       if (phase == 1)
       {
+          if (this.denormalizedZeros) {
+              return "2^" + (1 - this.props.exponentBias) + " *";
+          }
+          else if (this.denormalizedOnes) {
+              return "";
+          }
           return "2^(" + exponent + " - " + this.props.exponentBias + ") *";
       }
       if (phase == 2)
       {
-          return Math.pow(2, exponent - this.props.exponentBias) + " *";
+          if (this.denormalizedOnes) {
+              return "";
+          }
+          var power = exponent - this.props.exponentBias;
+          if (this.denormalizedZeros) {
+              power = 1 - this.props.exponentBias;
+          }
+          return Math.pow(2, power) + " *";
       }
   }
   getMantissaExpression(phase) {
       var expressionBits = this.getMantissaBits().join('');
+      if (this.denormalizedOnes) {
+          var mantissaAllZeros = this.getMantissaBits().reduce((pre, cur) => pre && (cur == 0), true);
+          if (mantissaAllZeros) {
+              return "Infinity (since all zeros)";
+          }
+          else {
+              return "NaN (since non-zero)";
+          }
+      }
+      var leadingDigit = this.denormalizedZeros ? 0 : 1;
       if (phase == 0)
       {
-          return "1." + expressionBits + " (binary)";
+          return leadingDigit + "." + expressionBits + " (binary)";
       }
       // can't parse float in base 2 :-(
       var value = parseInt(expressionBits, 2) / Math.pow(2, this.props.fractionBits);
-      return 1.0 + value;
+      return leadingDigit + value;
   }
   getExponentBits() {
       return this.bits.slice(1,1+this.props.exponentBits);
@@ -121,8 +150,8 @@ class HexFloatBreakdown extends Component {
     binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(), 1)}</td>);
     binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(), 1 + this.props.exponentBits)}</td>);
 
-    // TODO - denormalized
-    //if (
+    this.denormalizedZeros = this.getExponentBits().reduce((pre, cur) => pre && (cur == 0), true);
+    this.denormalizedOnes = this.getExponentBits().reduce((pre, cur) => pre && (cur == 1), true);
     return (
       <table>
         <tbody>
@@ -131,7 +160,7 @@ class HexFloatBreakdown extends Component {
           <tr>{binaryDigitsTds}</tr>
           <tr>{binaryBreakdownTds}</tr>
           <tr><td colSpan={3}>sign</td><td colSpan={1+this.props.exponentBits-3}>exponent</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>mantissa</td></tr>
-          <tr><td colSpan={3}>{this.getSignExpression(0)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(0)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(0)}</td></tr>
+          <tr><td colSpan={3}>{this.getSignExpression(0)}</td><td colSpan={1+this.props.exponentBits-3} dangerouslySetInnerHTML={this.getExponentExpression(0)}/><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(0)}</td></tr>
           <tr><td colSpan={3}>{this.getSignExpression(1)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(1)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(1)}</td></tr>
           <tr><td colSpan={3}>{this.getSignExpression(2)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(2)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(2)}</td></tr>
           <tr><td colSpan={this.props.hexDigits * 4}>{this.props.floatingValue}</td></tr>
@@ -207,7 +236,7 @@ class HexConverter extends Component {
       });
   }
   convertToHex() {
-      this.doConvert('action=' + this.props.floatType.toLowerCase() + 'tohex&' + this.props.floatType.toLowerCase() + '=' + this.state.floatingValue);
+      this.doConvert('action=' + this.props.floatType.toLowerCase() + 'tohex&' + this.props.floatType.toLowerCase() + '=' + this.state.floatingValue.replace('+', '%2B'));
   }
   convertToFloating() {
       this.doConvert('action=hexto' + this.props.floatType.toLowerCase() + '&hex=' + this.state.hexValue);
