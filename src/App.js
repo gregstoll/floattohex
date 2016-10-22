@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { NICE, SUPER_NICE } from './colors';
+//import { NICE, SUPER_NICE } from './colors';
 
 // https://stackoverflow.com/questions/34107925/node-referenceerror-promise-is-not-defined
 var Promise = require('promise')
