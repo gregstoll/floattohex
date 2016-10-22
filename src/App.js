@@ -92,7 +92,7 @@ class HexFloatBreakdown extends Component {
       if (phase == 0)
       {
           if (this.denormalizedZeros) {
-              return {__html: exponent + ' <b>denormalized</b>'};
+              return {__html: exponent + ' <b>subnormal</b>'};
           }
           else if (this.denormalizedOnes) {
               return {__html: exponent + ' <b>special</b>'};
