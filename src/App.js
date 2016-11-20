@@ -174,7 +174,8 @@ class HexFloatBreakdown extends Component {
   render() {
     if (this.props.hexValue === '' || this.props.hexValue === 'ERROR'
       || this.props.floatingValue === '' || this.props.floatingValue === 'ERROR'
-      || this.props.hexValue.length != 2 + this.props.hexDigits)
+      || this.props.hexValue.length != 2 + this.props.hexDigits
+      || !this.props.showExplanation)
     {
         return <div style={{'display': 'none'}}/>;
     }
@@ -228,6 +229,7 @@ HexFloatBreakdown.propTypes = {
     exponentBias: React.PropTypes.number.isRequired,
     fractionBits: React.PropTypes.number.isRequired,
     decimalPrecision: React.PropTypes.number.isRequired,
+    showExplanation: React.PropTypes.bool,
 };
 
 class HexConverter extends Component {
@@ -346,14 +348,38 @@ HexConverter.propTypes = {
     decimalPrecision: React.PropTypes.number.isRequired,
     marginTop: React.PropTypes.number,
     flash: React.PropTypes.bool,
+    showExplanation: React.PropTypes.bool,
 };
 
 export class App extends Component {
+  constructor(props) {
+      super(props);
+      // parse query hash
+      var showExplanation = true;
+      if (window.location.search) {
+          var hash = window.location.search.substring(1);
+          var parts = hash.split('&');
+          for (var i = 0; i < parts.length; ++i) {
+              // hacky
+              if (parts[i] == 'showExplanation=0') {
+                  showExplanation = false;
+              }
+          }
+      }
+      this.state = {'showExplanation': showExplanation};
+
+      this.handleChange = this.handleChange.bind(this);
+  }
+  handleChange(event) {
+      // a little hacky?
+      this.setState({'showExplanation': !this.state.showExplanation});
+  }
   render() {
     return (
       <div>
-        <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9}/>
-        <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17}/>
+        <div><input type="checkbox" checked={this.state.showExplanation} id="showExplanation" onChange={this.handleChange}/>&nbsp;<label htmlFor="showExplanation">Show details</label></div>
+        <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9} showExplanation={this.state.showExplanation}/>
+        <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17} showExplanation={this.state.showExplanation}/>
       </div>
     );
   }
