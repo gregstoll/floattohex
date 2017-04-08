@@ -2,7 +2,7 @@
 
 import unittest
 import xml.etree.ElementTree
-from floattohex3 import *
+from floattohex import *
 from io import StringIO
 
 def captureStdout(func):
