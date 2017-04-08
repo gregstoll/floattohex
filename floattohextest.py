@@ -55,50 +55,106 @@ class TestFloatToHex(FloatToHexTest):
         out = captureStdout(lambda: handleFloatToHex(0.5))
         self.checkFloatHex(out, '0.5', '0x3f000000')
 
+    def test_05_swap(self):
+        out = captureStdout(lambda: handleFloatToHex(0.5, True))
+        self.checkFloatHex(out, '0.5', '0x0000003f')
+
     def test_2(self):
         out = captureStdout(lambda: handleFloatToHex(2))
         self.checkFloatHex(out, '2', '0x40000000')
+
+    def test_2_swap(self):
+        out = captureStdout(lambda: handleFloatToHex(2, True))
+        self.checkFloatHex(out, '2', '0x00000040')
 
     def test_neg2(self):
         out = captureStdout(lambda: handleFloatToHex(-2))
         self.checkFloatHex(out, '-2', '0xc0000000')
 
+    def test_neg2_swap(self):
+        out = captureStdout(lambda: handleFloatToHex(-2, True))
+        self.checkFloatHex(out, '-2', '0x000000c0')
+
+    def test_highlowbyte(self):
+        out = captureStdout(lambda: handleFloatToHex(1.0002))
+        self.checkFloatHex(out, '1.0002', '0x3f80068e')
+
+    def test_highlowbyte_swap(self):
+        out = captureStdout(lambda: handleFloatToHex(1.0002, True))
+        self.checkFloatHex(out, '1.0002', '0x8e06803f')
+
     def test_0(self):
         out = captureStdout(lambda: handleFloatToHex(0))
+        self.checkFloatHex(out, '0', '0x00000000')
+
+    def test_0_swap(self):
+        out = captureStdout(lambda: handleFloatToHex(0, True))
         self.checkFloatHex(out, '0', '0x00000000')
 
     def test_neg0(self):
         out = captureStdout(lambda: handleFloatToHex(float("-0.0")))
         self.checkFloatHex(out, '-0', '0x80000000')
 
+    def test_neg0_swap(self):
+        out = captureStdout(lambda: handleFloatToHex(float("-0.0"), True))
+        self.checkFloatHex(out, '-0', '0x00000080')
+
 class TestHexToFloat(FloatToHexTest):
     def test_05(self):
         out = captureStdout(lambda: handleHexToFloat('0x3f000000'))
         self.checkFloatHex(out, '0.5', '0x3f000000')
 
+    def test_05_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0x0000003f', True))
+        self.checkFloatHex(out, '0.5', '0x0000003f')
+
     def test_2(self):
         out = captureStdout(lambda: handleHexToFloat('0x40000000'))
         self.checkFloatHex(out, '2', '0x40000000')
+
+    def test_2_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0x00000040', True))
+        self.checkFloatHex(out, '2', '0x00000040')
 
     def test_neg2(self):
         out = captureStdout(lambda: handleHexToFloat('0xc0000000'))
         self.checkFloatHex(out, '-2', '0xc0000000')
 
+    def test_neg2_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0x000000c0', True))
+        self.checkFloatHex(out, '-2', '0x000000c0')
+
     def test_0(self):
         out = captureStdout(lambda: handleHexToFloat('0x00000000'))
+        self.checkFloatHex(out, '0', '0x00000000')
+    
+    def test_0_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0x00000000', True))
         self.checkFloatHex(out, '0', '0x00000000')
 
     def test_neg0(self):
         out = captureStdout(lambda: handleHexToFloat('0x80000000'))
         self.checkFloatHex(out, '-0', '0x80000000')
 
+    def test_neg0_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0x00000080', True))
+        self.checkFloatHex(out, '-0', '0x00000080')
+
     def test_nan(self):
         out = captureStdout(lambda: handleHexToFloat('0xffffffff'))
+        self.checkFloatHex(out, 'nan', '0xffffffff')
+
+    def test_nan_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0xffffffff', True))
         self.checkFloatHex(out, 'nan', '0xffffffff')
 
     def test_no0x(self):
         out = captureStdout(lambda: handleHexToFloat('40000000'))
         self.checkFloatHex(out, '2', '0x40000000')
+
+    def test_no0x_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('40', True))
+        self.checkFloatHex(out, '2', '0x00000040')
 
     def test_notlongenough(self):
         out = captureStdout(lambda: handleHexToFloat('0x400000'))
@@ -108,12 +164,24 @@ class TestHexToFloat(FloatToHexTest):
         out = captureStdout(lambda: handleHexToFloat('0xg0000000'))
         self.checkHexToFloatError(out)
 
+    def test_gcharacter_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0xg0000000', True))
+        self.checkHexToFloatError(out)
+
     def test_minuscharacter(self):
         out = captureStdout(lambda: handleHexToFloat('-0x40000000'))
         self.checkHexToFloatError(out)
 
+    def test_minuscharacter_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('-0x40000000', True))
+        self.checkHexToFloatError(out)
+
     def test_minuscharacterinmiddle(self):
         out = captureStdout(lambda: handleHexToFloat('0x40-000000'))
+        self.checkHexToFloatError(out)
+
+    def test_minuscharacterinmiddle_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0x40-000000', True))
         self.checkHexToFloatError(out)
 
 class TestDoubleToHex(FloatToHexTest):
@@ -121,50 +189,98 @@ class TestDoubleToHex(FloatToHexTest):
         out = captureStdout(lambda: handleDoubleToHex(0.5))
         self.checkDoubleHex(out, '0.5', '0x3fe0000000000000')
 
+    def test_05_swap(self):
+        out = captureStdout(lambda: handleDoubleToHex(0.5, True))
+        self.checkDoubleHex(out, '0.5', '0x000000000000e03f')
+
     def test_2(self):
         out = captureStdout(lambda: handleDoubleToHex(2))
         self.checkDoubleHex(out, '2', '0x4000000000000000')
+
+    def test_2_swap(self):
+        out = captureStdout(lambda: handleDoubleToHex(2, True))
+        self.checkDoubleHex(out, '2', '0x0000000000000040')
 
     def test_neg2(self):
         out = captureStdout(lambda: handleDoubleToHex(-2))
         self.checkDoubleHex(out, '-2', '0xc000000000000000')
 
+    def test_neg2_swap(self):
+        out = captureStdout(lambda: handleDoubleToHex(-2, True))
+        self.checkDoubleHex(out, '-2', '0x00000000000000c0')
+
     def test_0(self):
         out = captureStdout(lambda: handleDoubleToHex(0))
+        self.checkDoubleHex(out, '0', '0x0000000000000000')
+
+    def test_0(self):
+        out = captureStdout(lambda: handleDoubleToHex(0, True))
         self.checkDoubleHex(out, '0', '0x0000000000000000')
 
     def test_neg0(self):
         out = captureStdout(lambda: handleDoubleToHex(float("-0.0")))
         self.checkDoubleHex(out, '-0.0', '0x8000000000000000')
 
+    def test_neg0(self):
+        out = captureStdout(lambda: handleDoubleToHex(float("-0.0"), True))
+        self.checkDoubleHex(out, '-0.0', '0x0000000000000080')
+
 class TestHexToDouble(FloatToHexTest):
     def test_05(self):
         out = captureStdout(lambda: handleHexToDouble('0x3fe0000000000000'))
         self.checkDoubleHex(out, '0.5', '0x3fe0000000000000')
 
+    def test_05_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('0x000000000000e03f', True))
+        self.checkDoubleHex(out, '0.5', '0x000000000000e03f')
+
     def test_2(self):
         out = captureStdout(lambda: handleHexToDouble('0x4000000000000000'))
         self.checkDoubleHex(out, '2.0', '0x4000000000000000')
+
+    def test_2_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('0x0000000000000040', True))
+        self.checkDoubleHex(out, '2.0', '0x0000000000000040')
 
     def test_neg2(self):
         out = captureStdout(lambda: handleHexToDouble('0xc000000000000000'))
         self.checkDoubleHex(out, '-2.0', '0xc000000000000000')
 
+    def test_neg2_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('0x00000000000000c0', True))
+        self.checkDoubleHex(out, '-2.0', '0x00000000000000c0')
+
     def test_0(self):
         out = captureStdout(lambda: handleHexToDouble('0x0000000000000000'))
+        self.checkDoubleHex(out, '0.0', '0x0000000000000000')
+
+    def test_0_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('0x0000000000000000', True))
         self.checkDoubleHex(out, '0.0', '0x0000000000000000')
 
     def test_neg0(self):
         out = captureStdout(lambda: handleHexToDouble('0x8000000000000000'))
         self.checkDoubleHex(out, '-0.0', '0x8000000000000000')
 
+    def test_neg0_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('0x0000000000000080', True))
+        self.checkDoubleHex(out, '-0.0', '0x0000000000000080')
+
     def test_nan(self):
         out = captureStdout(lambda: handleHexToDouble('0xffffffffffffffff'))
+        self.checkDoubleHex(out, 'nan', '0xffffffffffffffff')
+    
+    def test_nan_swa(self):
+        out = captureStdout(lambda: handleHexToDouble('0xffffffffffffffff', True))
         self.checkDoubleHex(out, 'nan', '0xffffffffffffffff')
 
     def test_no0x(self):
         out = captureStdout(lambda: handleHexToDouble('4000000000000000'))
         self.checkDoubleHex(out, '2.0', '0x4000000000000000')
+
+    def test_no0x_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('40', True))
+        self.checkDoubleHex(out, '2.0', '0x0000000000000040')
 
     def test_notlongenough(self):
         out = captureStdout(lambda: handleHexToDouble('0x40000000000000'))
@@ -174,12 +290,24 @@ class TestHexToDouble(FloatToHexTest):
         out = captureStdout(lambda: handleHexToDouble('0xg000000000000000'))
         self.checkHexToDoubleError(out)
 
+    def test_gcharacter_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('0xg000000000000000', True))
+        self.checkHexToDoubleError(out)
+
     def test_minuscharacter(self):
         out = captureStdout(lambda: handleHexToDouble('-0x4000000000000000'))
         self.checkHexToDoubleError(out)
 
+    def test_minuscharacter_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('-0x4000000000000000', True))
+        self.checkHexToDoubleError(out)
+
     def test_minuscharacterinmiddle(self):
         out = captureStdout(lambda: handleHexToDouble('0x40-00000000000000'))
+        self.checkHexToDoubleError(out)
+
+    def test_minuscharacterinmiddle_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('0x40-00000000000000', True))
         self.checkHexToDoubleError(out)
 
 

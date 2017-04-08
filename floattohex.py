@@ -33,15 +33,15 @@ def returnDoubleHex(d, h):
     print("<hex>%s</hex>" % h)
     print("</values>")
 
-def handleFloatToHex(f):
+def handleFloatToHex(f, swap=False):
     isNegative = False
     fToPass = f
     # weird handling for negative 0
-    if math.copysign(1, f) == -1:
+    if not swap and math.copysign(1, f) == -1:
         isNegative = True
         fToPass = -1.0 * f
     try:
-        h = FloatToHex.floattohex(fToPass)
+        h = FloatToHex.floattohex(fToPass, swap)
     except:
         returnFloatHex(form.getfirst('float'), 'ERROR')
         return
@@ -51,7 +51,7 @@ def handleFloatToHex(f):
         h = h[0:2] + hex(int(h[2:3], 16) + 8)[2:] + h[3:]
     returnFloatHex(f, h)
 
-def handleHexToFloat(h):
+def handleHexToFloat(h, swap=False):
     if (not h.startswith('0x')):
         h = '0x' + h
     # Handle cases that are too big for a long (won't convert to unsigned, it
@@ -68,7 +68,7 @@ def handleHexToFloat(h):
         makeNegative = True
     try:
         i = int(hToPass[2:], 16)
-        f = FloatToHex.hextofloat(i)
+        f = FloatToHex.hextofloat(i, swap)
     except:
         returnFloatHex('ERROR', form.getfirst('hex'))
         return
@@ -76,15 +76,15 @@ def handleHexToFloat(h):
         f = -1.0 * f
     returnFloatHex(f, h)
 
-def handleDoubleToHex(d):
+def handleDoubleToHex(d, swap=False):
     isNegative = False
     dToPass = d
     # weird handling for negative 0
-    if math.copysign(1, d) == -1:
+    if not swap and math.copysign(1, d) == -1:
         isNegative = True
         dToPass = -1.0 * d
     try:
-        h = FloatToHex.doubletohex(dToPass)
+        h = FloatToHex.doubletohex(dToPass, swap)
     except:
         returnDoubleHex(form.getfirst('double'), 'ERROR')
         return
@@ -98,7 +98,7 @@ def handleDoubleToHex(d):
             return
     returnDoubleHex(d, h)
 
-def handleHexToDouble(h):
+def handleHexToDouble(h, swap=False):
     if (not h.startswith('0x')):
         h = '0x' + h
     # Handle cases that are too big for a long (won't convert to unsigned, it
@@ -115,7 +115,7 @@ def handleHexToDouble(h):
         makeNegative = True
     try:
         i = int(hToPass[2:], 16)
-        d = FloatToHex.hextodouble(i)
+        d = FloatToHex.hextodouble(i, swap)
     except:
         returnDoubleHex('ERROR', form.getfirst('hex'))
         return

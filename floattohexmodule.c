@@ -25,52 +25,97 @@ struct module_state {
 static struct module_state _state;
 #endif
 
-static PyObject *
-FloatToHex_FloatToHex(PyObject *self, PyObject *args)
-{
-    float f;
-    if (!PyArg_ParseTuple(args, "f:floattohex", &f))
-        return NULL;
-    int i = *((int *)&f);
-    return Py_BuildValue("i", i);
+void swapFloat(float* f) {
+    char* fBytes = (char*)f;
+    for (int i = 0; i < sizeof(float)/2; ++i) {
+        int oppositeI = sizeof(float) - 1 - i;
+        char temp = fBytes[i];
+        fBytes[i] = fBytes[oppositeI];
+        fBytes[oppositeI] = temp;
+    }
+}
+
+void swapDouble(double* d) {
+    char* dBytes = (char*)d;
+    for (int i = 0; i < sizeof(double)/2; ++i) {
+        int oppositeI = sizeof(double) - 1 - i;
+        char temp = dBytes[i];
+        dBytes[i] = dBytes[oppositeI];
+        dBytes[oppositeI] = temp;
+    }
 }
 
 static PyObject *
-FloatToHex_HexToFloat(PyObject *self, PyObject *args)
+FloatToHex_FloatToHex(PyObject *self, PyObject *args, PyObject *keywords)
+{
+    float f, fToUse;
+    int swap = 0;
+    char *keywordNames[] = {"float", "swap", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "f|p:floattohex", keywordNames, &f, &swap))
+        return NULL;
+    fToUse = f;
+    if (swap != 0) {
+        swapFloat(&fToUse);
+    }
+
+    int i = *((int *)&fToUse);
+    return Py_BuildValue("I", i);
+}
+
+static PyObject *
+FloatToHex_HexToFloat(PyObject *self, PyObject *args, PyObject *keywords)
 {
     unsigned int i;
-    if (!PyArg_ParseTuple(args, "I:hextofloat", &i))
+    int swap = 0;
+    char *keywordNames[] = {"hex", "swap", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "I|p:hextofloat", keywordNames, &i, &swap))
         return NULL;
     float f = *((float *)&i);
-    return Py_BuildValue("f", f);
+    float fToReturn = f;
+    if (swap != 0) {
+        swapFloat(&fToReturn);
+    }
+    return Py_BuildValue("f", fToReturn);
 }
 
 static PyObject *
-FloatToHex_DoubleToHex(PyObject *self, PyObject *args)
+FloatToHex_DoubleToHex(PyObject *self, PyObject *args, PyObject *keywords)
 {
     double d;
-    if (!PyArg_ParseTuple(args, "d:doubletohex", &d))
+    int swap = 0;
+    char *keywordNames[] = {"double", "swap", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "d|p:doubletohex", keywordNames, &d, &swap))
         return NULL;
-    long long l = *((long long*)&d);
+    double dToUse = d;
+    if (swap != 0) {
+        swapDouble(&dToUse);
+    }
+    long long l = *((long long*)&dToUse);
     return Py_BuildValue("L", l);
 }
 
 static PyObject *
-FloatToHex_HexToDouble(PyObject *self, PyObject *args)
+FloatToHex_HexToDouble(PyObject *self, PyObject *args, PyObject *keywords)
 {
     unsigned long long l;
-    if (!PyArg_ParseTuple(args, "L:hextodouble", &l))
+    int swap = 0;
+    char *keywordNames[] = {"hex", "swap", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "L|p:hextodouble", keywordNames, &l, &swap))
         return NULL;
     double d = *((double *)&l);
-    return Py_BuildValue("d", d);
+    double dToReturn = d;
+    if (swap != 0) {
+        swapDouble(&dToReturn);
+    }
+    return Py_BuildValue("d", dToReturn);
 }
 /* List of functions defined in the module */
 
 static PyMethodDef FloatToHex_methods[] = {
-    {"floattohex",     (PyCFunction)FloatToHex_FloatToHex,  METH_VARARGS},
-    {"hextofloat",     (PyCFunction)FloatToHex_HexToFloat,  METH_VARARGS},
-    {"doubletohex",    (PyCFunction)FloatToHex_DoubleToHex, METH_VARARGS},
-    {"hextodouble",    (PyCFunction)FloatToHex_HexToDouble, METH_VARARGS},
+    {"floattohex",     (PyCFunction)FloatToHex_FloatToHex,  METH_VARARGS|METH_KEYWORDS},
+    {"hextofloat",     (PyCFunction)FloatToHex_HexToFloat,  METH_VARARGS|METH_KEYWORDS},
+    {"doubletohex",    (PyCFunction)FloatToHex_DoubleToHex, METH_VARARGS|METH_KEYWORDS},
+    {"hextodouble",    (PyCFunction)FloatToHex_HexToDouble, METH_VARARGS|METH_KEYWORDS},
     {NULL,      NULL}       /* sentinel */
 };
 
