@@ -1,2 +1,2 @@
 all:
-	./setup.py build
+	CFLAGS=-fno-strict-aliasing ./setup.py build

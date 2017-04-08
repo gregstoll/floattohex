@@ -13,14 +13,17 @@
 
 #include "Python.h"
 
+
+struct module_state {
+    PyObject *error;
+};
+
 #if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
 #else
 #define GETSTATE(m) (&_state)
 static struct module_state _state;
 #endif
-
-static PyObject *ErrorObject;
 
 static PyObject *
 FloatToHex_FloatToHex(PyObject *self, PyObject *args)
@@ -72,20 +75,46 @@ static PyMethodDef FloatToHex_methods[] = {
 };
 
 
+static int FloatToHex_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
 
+static int FloatToHex_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+
+
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "FloatToHex",
+        NULL,
+        sizeof(struct module_state),
+        FloatToHex_methods,
+        NULL,
+        FloatToHex_traverse,
+        FloatToHex_clear,
+        NULL
+};
 /* Initialization function for the module (*must* be called initxx) */
 
-DL_EXPORT(void)
-initFloatToHex(void)
+PyObject* PyInit_FloatToHex(void)
 {
-    PyObject *m, *d;
-
     /* Create the module and add the functions */
-    m = Py_InitModule("FloatToHex", FloatToHex_methods);
+    PyObject* module = PyModule_Create(&moduledef);
+    if (module == NULL)
+        return NULL;
+
+    struct module_state *st = GETSTATE(module);
 
     /* Add some symbolic constants to the module */
-    d = PyModule_GetDict(m);
-    ErrorObject = PyErr_NewException("FloatToHex.error", NULL, NULL);
-    PyDict_SetItemString(d, "error", ErrorObject);
+    st->error = PyErr_NewException("FloatToHex.Error", NULL, NULL);
+    if (st->error == NULL) {
+        Py_DECREF(module);
+        return NULL;
+    }
+
+    return module;
 }
 
