@@ -13,6 +13,13 @@
 
 #include "Python.h"
 
+#if PY_MAJOR_VERSION >= 3
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#else
+#define GETSTATE(m) (&_state)
+static struct module_state _state;
+#endif
+
 static PyObject *ErrorObject;
 
 static PyObject *
@@ -65,6 +72,7 @@ static PyMethodDef FloatToHex_methods[] = {
 };
 
 
+
 /* Initialization function for the module (*must* be called initxx) */
 
 DL_EXPORT(void)
@@ -80,5 +88,4 @@ initFloatToHex(void)
     ErrorObject = PyErr_NewException("FloatToHex.error", NULL, NULL);
     PyDict_SetItemString(d, "error", ErrorObject);
 }
-
 

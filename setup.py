@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from distutils.core import setup, Extension
 
-FloatToHexModule = Extension('FloatToHex',
+FloatToHexModule = Extension('FloatToHexNew',
                          sources = ['floattohexmodule.c'])
 
-setup (name = 'FloatToHex',
+setup (name = 'FloatToHexNew',
        version = '1.0',
        description = 'Converts float to hex and back',
        ext_modules = [FloatToHexModule])
