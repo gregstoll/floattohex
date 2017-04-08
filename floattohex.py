@@ -1,6 +1,16 @@
 #!/usr/bin/python3
 
-import FloatToHex, cgi, sys
+import FloatToHex, cgi, sys, math
+
+def padAndFormatHex(h, numDigits):
+    if h is None:
+        return h
+    if (h.endswith('L') or h.endswith('l')):
+        h = h[:-1]
+    # assumes it already starts with "0x"
+    while len(h) < numDigits + 2:
+        h = h[:2] + '0' + h[2:]
+    return h
 
 def returnFloatHex(f, h):
     print("Content-type: text/xml\n")
@@ -11,8 +21,7 @@ def returnFloatHex(f, h):
         print("<float>%s</float>" % f)
     else:
         print("<float>%g</float>" % f)
-    if (h is not None and (h.endswith('L') or h.endswith('l'))):
-        h = h[:-1]
+    h = padAndFormatHex(h, 8)
     print("<hex>%s</hex>" % h)
     print("</values>")
 
@@ -20,15 +29,15 @@ def returnDoubleHex(d, h):
     print("Content-type: text/xml\n")
     print("<values>")
     print("<double>" + str(d) + "</double>")
-    if (h is not None and (h.endswith('L') or h.endswith('l'))):
-        h = h[:-1]
+    h = padAndFormatHex(h, 16)
     print("<hex>%s</hex>" % h)
     print("</values>")
 
 def handleFloatToHex(f):
     isNegative = False
     fToPass = f
-    if (f < 0.0):
+    # weird handling for negative 0
+    if math.copysign(1, f) == -1:
         isNegative = True
         fToPass = -1.0 * f
     try:
@@ -37,6 +46,7 @@ def handleFloatToHex(f):
         returnFloatHex(form.getfirst('float'), 'ERROR')
         return
     h = str(hex(h)).lower()
+    h = padAndFormatHex(h, 8)
     if (isNegative):
         h = h[0:2] + hex(int(h[2:3], 16) + 8)[2:] + h[3:]
     returnFloatHex(f, h)
@@ -69,7 +79,8 @@ def handleHexToFloat(h):
 def handleDoubleToHex(d):
     isNegative = False
     dToPass = d
-    if (d < 0.0):
+    # weird handling for negative 0
+    if math.copysign(1, d) == -1:
         isNegative = True
         dToPass = -1.0 * d
     try:
@@ -78,6 +89,7 @@ def handleDoubleToHex(d):
         returnDoubleHex(form.getfirst('double'), 'ERROR')
         return
     h = str(hex(h)).lower()
+    h = padAndFormatHex(h, 16)
     if (isNegative):
         try:
             h = h[0:2] + hex(int(h[2:3], 16) + 8)[2:] + h[3:]
@@ -98,7 +110,7 @@ def handleHexToDouble(h):
         return
     makeNegative = False
     hToPass = h
-    if (firstDigit > 8):
+    if (firstDigit >= 8):
         hToPass = h[0:2] + str(firstDigit - 8) + h[3:]
         makeNegative = True
     try:

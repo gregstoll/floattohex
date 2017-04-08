@@ -63,12 +63,10 @@ class TestFloatToHex(FloatToHexTest):
         out = captureStdout(lambda: handleFloatToHex(-2))
         self.checkFloatHex(out, '-2', '0xc0000000')
 
-    @unittest.skip("bug")
     def test_0(self):
         out = captureStdout(lambda: handleFloatToHex(0))
         self.checkFloatHex(out, '0', '0x00000000')
 
-    @unittest.skip("bug")
     def test_neg0(self):
         out = captureStdout(lambda: handleFloatToHex(float("-0.0")))
         self.checkFloatHex(out, '-0', '0x80000000')
@@ -90,7 +88,6 @@ class TestHexToFloat(FloatToHexTest):
         out = captureStdout(lambda: handleHexToFloat('0x00000000'))
         self.checkFloatHex(out, '0', '0x00000000')
 
-    @unittest.skip("bug")
     def test_neg0(self):
         out = captureStdout(lambda: handleHexToFloat('0x80000000'))
         self.checkFloatHex(out, '-0', '0x80000000')
@@ -105,7 +102,7 @@ class TestHexToFloat(FloatToHexTest):
 
     def test_notlongenough(self):
         out = captureStdout(lambda: handleHexToFloat('0x400000'))
-        self.checkFloatHex(out, '5.87747e-39', '0x400000')
+        self.checkFloatHex(out, '5.87747e-39', '0x00400000')
 
     def test_gcharacter(self):
         out = captureStdout(lambda: handleHexToFloat('0xg0000000'))
@@ -132,15 +129,13 @@ class TestDoubleToHex(FloatToHexTest):
         out = captureStdout(lambda: handleDoubleToHex(-2))
         self.checkDoubleHex(out, '-2', '0xc000000000000000')
 
-    @unittest.skip("bug")
     def test_0(self):
         out = captureStdout(lambda: handleDoubleToHex(0))
         self.checkDoubleHex(out, '0', '0x0000000000000000')
 
-    @unittest.skip("bug")
     def test_neg0(self):
         out = captureStdout(lambda: handleDoubleToHex(float("-0.0")))
-        self.checkDoubleHex(out, '-0', '0x8000000000000000')
+        self.checkDoubleHex(out, '-0.0', '0x8000000000000000')
 
 class TestHexToDouble(FloatToHexTest):
     def test_05(self):
@@ -159,7 +154,6 @@ class TestHexToDouble(FloatToHexTest):
         out = captureStdout(lambda: handleHexToDouble('0x0000000000000000'))
         self.checkDoubleHex(out, '0.0', '0x0000000000000000')
 
-    @unittest.skip("bug")
     def test_neg0(self):
         out = captureStdout(lambda: handleHexToDouble('0x8000000000000000'))
         self.checkDoubleHex(out, '-0.0', '0x8000000000000000')
@@ -174,7 +168,7 @@ class TestHexToDouble(FloatToHexTest):
 
     def test_notlongenough(self):
         out = captureStdout(lambda: handleHexToDouble('0x40000000000000'))
-        self.checkDoubleHex(out, '1.7800590868057611e-307', '0x40000000000000')
+        self.checkDoubleHex(out, '1.7800590868057611e-307', '0x0040000000000000')
 
     def test_gcharacter(self):
         out = captureStdout(lambda: handleHexToDouble('0xg000000000000000'))
