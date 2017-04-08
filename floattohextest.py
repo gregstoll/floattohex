@@ -1,17 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import unittest
 import xml.etree.ElementTree
-from floattohex import *
-try:
-    from StringIO import StringIO
-except ImportError:
-    try:
-        from io import StringIO
-    except ImportError:
-        from cStringIO import StringIO
-
-
+from floattohex3 import *
+from io import StringIO
 
 def captureStdout(func):
     # https://stackoverflow.com/questions/5136611/capture-stdout-from-a-script-in-python
@@ -174,7 +166,6 @@ class TestHexToDouble(FloatToHexTest):
 
     def test_nan(self):
         out = captureStdout(lambda: handleHexToDouble('0xffffffffffffffff'))
-        print out
         self.checkDoubleHex(out, 'nan', '0xffffffffffffffff')
 
     def test_no0x(self):
@@ -183,7 +174,7 @@ class TestHexToDouble(FloatToHexTest):
 
     def test_notlongenough(self):
         out = captureStdout(lambda: handleHexToDouble('0x40000000000000'))
-        self.checkDoubleHex(out, '1.78005908681e-307', '0x40000000000000')
+        self.checkDoubleHex(out, '1.7800590868057611e-307', '0x40000000000000')
 
     def test_gcharacter(self):
         out = captureStdout(lambda: handleHexToDouble('0xg000000000000000'))
