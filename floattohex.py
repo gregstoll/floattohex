@@ -125,27 +125,32 @@ def handleHexToDouble(h, swap=False):
 
 form = cgi.FieldStorage()
 action = form.getfirst('action')
+swap = form.getfirst('swap') == '1'
 if (action == 'floattohex'):
     try:
         f = float(form.getfirst('float'))
     except:
         returnFloatHex(form.getfirst('float'), 'ERROR')
         sys.exit(0)
-    handleFloatToHex(f)
+    handleFloatToHex(f, swap)
 elif (action == 'hextofloat'):
-    h = str(form.getfirst('hex').replace(' ', ''))
-    handleHexToFloat(h)
+    try:
+        h = str(form.getfirst('hex').replace(' ', ''))
+    except:
+        returnFloatHex('ERROR', form.getfirst('hex'))
+        sys.exit(0)
+    handleHexToFloat(h, swap)
 elif (action == 'doubletohex'):
     try:
         d = float(form.getfirst('double'))
     except:
         returnDoubleHex(form.getfirst('double'), 'ERROR')
         sys.exit(0)
-    handleDoubleToHex(d)
+    handleDoubleToHex(d, swap)
 elif (action == 'hextodouble'):
     try:
         h = str(form.getfirst('hex').replace(' ', ''))
     except:
         returnDoubleHex('ERROR', form.getfirst('hex'))
         sys.exit(0)
-    handleHexToDouble(h)
+    handleHexToDouble(h, swap)

@@ -171,6 +171,13 @@ class HexFloatBreakdown extends Component {
       spans.push(<span className={curClassName} key="last">{curSpanText}</span>);
       return spans;
   }
+  flipHexString(hexValue, hexDigits) {
+      var h = hexValue.substr(0, 2);
+      for (var i = 0; i < hexDigits; ++i) {
+          h += hexValue.substr(2 + (hexDigits - 1 - i) * 2, 2);
+      }
+      return h;
+  }
   render() {
     if (this.props.hexValue === '' || this.props.hexValue === 'ERROR'
       || this.props.floatingValue === '' || this.props.floatingValue === 'ERROR'
@@ -179,13 +186,17 @@ class HexFloatBreakdown extends Component {
     {
         return <div style={{'display': 'none'}}/>;
     }
+    this.hexValueToUse = this.props.hexValue;
+    if (this.props.flipEndianness) {
+        this.hexValueToUse = this.flipHexString(this.hexValueToUse, this.props.hexDigits);
+    }
     var hexDigitsTds = [];
     for (var i = 0; i < this.props.hexDigits; ++i) {
-        hexDigitsTds.push(<td colSpan="4" className={"hexDigitCollapsed " + this.classNameFromBitIndex(4*i)} key={"hexDigitCollapsed" + i}>{this.props.hexValue.substr(2 + i, 1)}</td>);
+        hexDigitsTds.push(<td colSpan="4" className={"hexDigitCollapsed " + this.classNameFromBitIndex(4*i)} key={"hexDigitCollapsed" + i}>{this.hexValueToUse.substr(2 + i, 1)}</td>);
     }
     this.bits = [];
     for (var i = 0; i < this.props.hexDigits; ++i) {
-        var binaryString = parseInt(this.props.hexValue.substr(2 + i, 1), 16).toString(2);
+        var binaryString = parseInt(this.hexValueToUse.substr(2 + i, 1), 16).toString(2);
         while (binaryString.length < 4) {
             binaryString = "0" + binaryString;
         }
@@ -204,10 +215,11 @@ class HexFloatBreakdown extends Component {
 
     this.denormalizedZeros = this.getExponentBits().reduce((pre, cur) => pre && (cur == 0), true);
     this.denormalizedOnes = this.getExponentBits().reduce((pre, cur) => pre && (cur == 1), true);
+    this.flippedDescription = this.props.flipEndianness ? ' (swapped endianness)': '';
     return (
       <table className="hexFloat">
         <tbody>
-          <tr><td colSpan={this.props.hexDigits * 4}>{this.props.hexValue}</td></tr>
+          <tr><td colSpan={this.props.hexDigits * 4}>{this.hexValueToUse}{this.flippedDescription}</td></tr>
           <tr>{hexDigitsTds}</tr>
           <tr>{binaryDigitsTds}</tr>
           <tr>{binaryBreakdownTds}</tr>
@@ -290,10 +302,10 @@ class HexConverter extends Component {
       });
   }
   convertToHex() {
-      this.doConvert('action=' + this.props.floatType.toLowerCase() + 'tohex&' + this.props.floatType.toLowerCase() + '=' + this.state.floatingValue.replace('+', '%2B'));
+      this.doConvert('action=' + this.props.floatType.toLowerCase() + 'tohex&' + this.props.floatType.toLowerCase() + '=' + this.state.floatingValue.replace('+', '%2B') + '&swap=' + (this.props.flipEndianness ? '1' : '0'));
   }
   convertToFloating() {
-      this.doConvert('action=hexto' + this.props.floatType.toLowerCase() + '&hex=' + this.state.hexValue);
+      this.doConvert('action=hexto' + this.props.floatType.toLowerCase() + '&hex=' + this.state.hexValue + '&swap=' + (this.props.flipEndianness ? '1' : '0'));
   }
   setTopLevelRef(c) {
       this.topLevelRef = c;
@@ -368,18 +380,23 @@ export class App extends Component {
       }
       this.state = {'showExplanation': showExplanation};
 
-      this.handleChange = this.handleChange.bind(this);
+      this.handleExplanationChange = this.handleExplanationChange.bind(this);
+      this.handleEndiannessChange = this.handleEndiannessChange.bind(this);
   }
-  handleChange(event) {
+  handleExplanationChange(event) {
       // a little hacky?
       this.setState({'showExplanation': !this.state.showExplanation});
+  }
+  handleEndiannessChange(event) {
+      // a little hacky?
+      this.setState({'flipEndianness': !this.state.flipEndianness});
   }
   render() {
     return (
       <div>
-        <div><input type="checkbox" checked={this.state.showExplanation} id="showExplanation" onChange={this.handleChange}/>&nbsp;<label htmlFor="showExplanation">Show details</label></div>
-        <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9} showExplanation={this.state.showExplanation}/>
-        <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17} showExplanation={this.state.showExplanation}/>
+        <div><input type="checkbox" checked={this.state.showExplanation} id="showExplanation" onChange={this.handleExplanationChange}/>&nbsp;<label htmlFor="showExplanation">Show details</label>&nbsp;<input type="checkbox" checked={this.state.flipEndianness} id="flipEndianness" onChange={this.handleEndiannessChange}/>&nbsp;<label htmlFor="flipEndianness">Swap endianness</label></div>
+        <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9} showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness}/>
+        <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17} showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness}/>
       </div>
     );
   }
