@@ -77,6 +77,7 @@ class HexFloatBreakdown extends Component {
       this.getMantissaBits = this.getMantissaBits.bind(this);
       this.classNameFromBitIndex = this.classNameFromBitIndex.bind(this);
       this.wrapBitsInClassName = this.wrapBitsInClassName.bind(this);
+      this.getNumericMultiplier = this.getNumericMultiplier.bind(this);
   }
   getSignExpression(phase) {
       var bit = this.bits[0];
@@ -178,6 +179,13 @@ class HexFloatBreakdown extends Component {
       }
       return h;
   }
+  getNumericMultiplier() {
+      var num = parseFloat(this.props.multiplier);
+      if (!isNaN(num)) {
+          return num;
+      }
+      return 1;
+  }
   render() {
     if (this.props.hexValue === '' || this.props.hexValue === 'ERROR'
       || this.props.floatingValue === '' || this.props.floatingValue === 'ERROR'
@@ -216,6 +224,13 @@ class HexFloatBreakdown extends Component {
     this.denormalizedZeros = this.getExponentBits().reduce((pre, cur) => pre && (cur == 0), true);
     this.denormalizedOnes = this.getExponentBits().reduce((pre, cur) => pre && (cur == 1), true);
     this.flippedDescription = this.props.flipEndianness ? ' (swapped endianness)': '';
+    this.floatingValueDisplay = this.props.floatingValue;
+    if (this.getNumericMultiplier() != 1) {
+        var floatValue = parseFloat(this.props.floatingValue);
+        if (!isNaN(floatValue)) {
+            this.floatingValueDisplay = this.props.floatingValue + ' * ' + this.props.multiplier + ' = ' + (floatValue * this.getNumericMultiplier());
+        }
+    }
     return (
       <table className="hexFloat">
         <tbody>
@@ -227,7 +242,7 @@ class HexFloatBreakdown extends Component {
           <tr><td colSpan={3}>{this.getSignExpression(0)}</td><td colSpan={1+this.props.exponentBits-3} dangerouslySetInnerHTML={this.getExponentExpression(0)}/><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(0)}</td></tr>
           <tr><td colSpan={3}>{this.getSignExpression(1)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(1)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(1)}</td></tr>
           <tr><td colSpan={3}>{this.getSignExpression(2)}</td><td colSpan={1+this.props.exponentBits-3}>{this.getExponentExpression(2)}</td><td colSpan={this.props.hexDigits*4-(1+this.props.exponentBits)}>{this.getMantissaExpression(2)}</td></tr>
-          <tr><td colSpan={this.props.hexDigits * 4}>{this.props.floatingValue}</td></tr>
+          <tr><td colSpan={this.props.hexDigits * 4}>{this.floatingValueDisplay}</td></tr>
         </tbody>
       </table>
     );
@@ -244,11 +259,16 @@ HexFloatBreakdown.propTypes = {
     showExplanation: React.PropTypes.bool,
 };
 
+var ConvertMode = {
+    HEX_TO_FLOATING: 1,
+    FLOATING_TO_HEX: 2
+};
+
 class HexConverter extends Component {
   constructor(props) {
       super(props);
       //console.log('HexConverter: ' + props);
-      this.state = {'hexValue': "", 'floatingValue': '', 'calculatedHexValue': "", 'calculatedFloatingValue': ""};
+      this.state = {'hexValue': "", 'floatingValue': '', 'calculatedHexValue': "", 'calculatedFloatingValue': "", 'multiplier': '1'};
       this.formStyle = {}
       if (props.marginTop) {
           this.formStyle['marginTop'] = props.marginTop + 'px';
@@ -257,6 +277,8 @@ class HexConverter extends Component {
 
       this.changeHexValue = this.changeHexValue.bind(this);
       this.changeFloatingValue = this.changeFloatingValue.bind(this);
+      this.changeMultiplier = this.changeMultiplier.bind(this);
+      this.getNumericMultiplier = this.getNumericMultiplier.bind(this);
       this.doConvert = this.doConvert.bind(this);
       this.convertToHex = this.convertToHex.bind(this);
       this.convertToFloating = this.convertToFloating.bind(this);
@@ -269,6 +291,9 @@ class HexConverter extends Component {
   }
   changeFloatingValue(e) {
       this.setState({'floatingValue': e.target.value});
+  }
+  changeMultiplier(e) {
+      this.setState({'multiplier': e.target.value});
   }
   parseXml(s) {
       var xmlDoc;
@@ -285,7 +310,7 @@ class HexConverter extends Component {
       }
       return xmlDoc;
   }
-  doConvert(query) {
+  doConvert(query, mode) {
       var that = this;
       fetch('floattohex.cgi?' + query).then(function(response) {
           return response.text();
@@ -298,14 +323,29 @@ class HexConverter extends Component {
               hexValue = hexValue.substr(0, 2) + "0" + hexValue.substr(2);
           }
           var floatingValue = floatingElem.childNodes[0].nodeValue;
+          if (mode == ConvertMode.FLOATING_TO_HEX) {
+              var parsedFloatValue = parseFloat(floatingValue);
+              if (!isNaN(parsedFloatValue)) {
+                  floatingValue = (parsedFloatValue/that.getNumericMultiplier()).toString();
+              }
+          }
           that.setState({'hexValue': hexValue, 'floatingValue': floatingValue, 'calculatedHexValue': hexValue, 'calculatedFloatingValue': floatingValue, 'flash': true});
       });
   }
+  getNumericMultiplier() {
+      var num = parseFloat(this.state.multiplier);
+      if (!isNaN(num)) {
+          return num;
+      }
+      return 1;
+  }
   convertToHex() {
-      this.doConvert('action=' + this.props.floatType.toLowerCase() + 'tohex&' + this.props.floatType.toLowerCase() + '=' + this.state.floatingValue.replace('+', '%2B') + '&swap=' + (this.props.flipEndianness ? '1' : '0'));
+      var floatValue = parseFloat(this.state.floatingValue);
+      floatValue *= this.getNumericMultiplier();
+      this.doConvert('action=' + this.props.floatType.toLowerCase() + 'tohex&' + this.props.floatType.toLowerCase() + '=' + floatValue.toString().replace('+', '%2B') + '&swap=' + (this.props.flipEndianness ? '1' : '0'), ConvertMode.FLOATING_TO_HEX);
   }
   convertToFloating() {
-      this.doConvert('action=hexto' + this.props.floatType.toLowerCase() + '&hex=' + this.state.hexValue + '&swap=' + (this.props.flipEndianness ? '1' : '0'));
+      this.doConvert('action=hexto' + this.props.floatType.toLowerCase() + '&hex=' + this.state.hexValue + '&swap=' + (this.props.flipEndianness ? '1' : '0'), ConvertMode.HEX_TO_FLOATING);
   }
   setTopLevelRef(c) {
       this.topLevelRef = c;
@@ -336,16 +376,20 @@ class HexConverter extends Component {
       }
   }
   render() {
+      var multiplierSpan;
+      if (Config.multiplier) {
+          multiplierSpan = <span>&nbsp;<label htmlFor={this.props.floatType.toLowerCase() + 'Multiplier'}>Multiplier:</label><input type="text" name={this.props.floatType.toLowerCase() + 'Multiplier'} id={this.props.floatType.toLowerCase() + 'Multiplier'} value={this.state.multiplier} onChange={this.changeMultiplier}/></span>;
+      }
     return (
       <form action="javascript:void(0);" style={this.formStyle} ref={this.setTopLevelRef}>
         <p>
             <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
             <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={this.changeHexValue}/><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={this.convertToFloating}/>
         </p>
-        <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} {...this.props}/>
+        <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} multiplier={this.state.multiplier} {...this.props}/>
         <p>
             <label htmlFor={this.props.floatType.toLowerCase() + 'Hex'}>{this.props.floatType + ' value:'}</label>
-            <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={this.changeFloatingValue}/><input type="button" value='Convert to hex' onClick={this.convertToHex}/>
+            <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={this.changeFloatingValue}/>{multiplierSpan}<input type="button" value='Convert to hex' onClick={this.convertToHex}/>
         </p>
       </form>
     );
