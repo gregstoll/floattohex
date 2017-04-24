@@ -75,6 +75,14 @@ class TestFloatToHex(FloatToHexTest):
         out = captureStdout(lambda: handleFloatToHex(-2, True))
         self.checkFloatHex(out, '-2', '0x000000c0')
 
+    def test_userbug(self):
+        out = captureStdout(lambda: handleFloatToHex(2435.49))
+        self.checkFloatHex(out, '2435.49', '0x451837d7')
+
+    def test_userbug_swap(self):
+        out = captureStdout(lambda: handleFloatToHex(2435.49, True))
+        self.checkFloatHex(out, '2435.49', '0xd7371845')
+
     def test_highlowbyte(self):
         out = captureStdout(lambda: handleFloatToHex(1.0002))
         self.checkFloatHex(out, '1.0002', '0x3f80068e')
@@ -123,6 +131,14 @@ class TestHexToFloat(FloatToHexTest):
     def test_neg2_swap(self):
         out = captureStdout(lambda: handleHexToFloat('0x000000c0', True))
         self.checkFloatHex(out, '-2', '0x000000c0')
+
+    def test_userbug(self):
+        out = captureStdout(lambda: handleHexToFloat('0x451837f5'))
+        self.checkFloatHex(out, '2435.5', '0x451837f5')
+
+    def test_userbug_swap(self):
+        out = captureStdout(lambda: handleHexToFloat('0xf5371845', True))
+        self.checkFloatHex(out, '2435.5', '0xf5371845')
 
     def test_0(self):
         out = captureStdout(lambda: handleHexToFloat('0x00000000'))
@@ -209,6 +225,14 @@ class TestDoubleToHex(FloatToHexTest):
         out = captureStdout(lambda: handleDoubleToHex(-2, True))
         self.checkDoubleHex(out, '-2', '0x00000000000000c0')
 
+    def test_userbug(self):
+        out = captureStdout(lambda: handleDoubleToHex(2435.52535))
+        self.checkDoubleHex(out, '2435.52535', '0x40a3070cfaacd9e8')
+
+    def test_userbug_swap(self):
+        out = captureStdout(lambda: handleDoubleToHex(2435.52535, True))
+        self.checkDoubleHex(out, '2435.52535', '0xe8d9acfa0c07a340')
+
     def test_0(self):
         out = captureStdout(lambda: handleDoubleToHex(0))
         self.checkDoubleHex(out, '0', '0x0000000000000000')
@@ -249,6 +273,14 @@ class TestHexToDouble(FloatToHexTest):
     def test_neg2_swap(self):
         out = captureStdout(lambda: handleHexToDouble('0x00000000000000c0', True))
         self.checkDoubleHex(out, '-2.0', '0x00000000000000c0')
+
+    def test_userbug(self):
+        out = captureStdout(lambda: handleHexToDouble('0x40a3070cfaacd9e8'))
+        self.checkDoubleHex(out, '2435.52535', '0x40a3070cfaacd9e8')
+
+    def test_userbug_swap(self):
+        out = captureStdout(lambda: handleHexToDouble('0xe8d9acfa0c07a340', True))
+        self.checkDoubleHex(out, '2435.52535', '0xe8d9acfa0c07a340')
 
     def test_0(self):
         out = captureStdout(lambda: handleHexToDouble('0x0000000000000000'))

@@ -33,47 +33,36 @@ def returnDoubleHex(d, h):
     print("<hex>%s</hex>" % h)
     print("</values>")
 
-def handleFloatToHex(f, swap=False):
-    isNegative = False
-    fToPass = f
-    # weird handling for negative 0
-    if not swap and math.copysign(1, f) == -1:
-        isNegative = True
-        fToPass = -1.0 * f
+def isHexChar(c):
     try:
-        h = FloatToHex.floattohex(fToPass, swap)
+        i = int(c, 16)
+        return True
+    except:
+        return False
+
+def handleFloatToHex(f, swap=False):
+    try:
+        h = FloatToHex.floattohex(f, swap)
     except:
         returnFloatHex(form.getfirst('float'), 'ERROR')
         return
     h = str(hex(h)).lower()
     h = padAndFormatHex(h, 8)
-    if (isNegative):
-        h = h[0:2] + hex(int(h[2:3], 16) + 8)[2:] + h[3:]
     returnFloatHex(f, h)
 
 def handleHexToFloat(h, swap=False):
     if (not h.startswith('0x')):
         h = '0x' + h
-    # Handle cases that are too big for a long (won't convert to unsigned, it
-    # seems)
+    for c in h[2:]:
+        if not isHexChar(c):
+            returnFloatHex('ERROR', form.getfirst('hex'))
+            return
     try:
-        firstDigit = int(h[2:3], 16)
-    except:
-        returnFloatHex('ERROR', form.getfirst('hex'))
-        return
-    makeNegative = False
-    hToPass = h
-    if (firstDigit > 8):
-        hToPass = h[0:2] + str(firstDigit - 8) + h[3:]
-        makeNegative = True
-    try:
-        i = int(hToPass[2:], 16)
+        i = int(h[2:], 16)
         f = FloatToHex.hextofloat(i, swap)
     except:
         returnFloatHex('ERROR', form.getfirst('hex'))
         return
-    if (makeNegative):
-        f = -1.0 * f
     returnFloatHex(f, h)
 
 def handleDoubleToHex(d, swap=False):
@@ -101,26 +90,16 @@ def handleDoubleToHex(d, swap=False):
 def handleHexToDouble(h, swap=False):
     if (not h.startswith('0x')):
         h = '0x' + h
-    # Handle cases that are too big for a long (won't convert to unsigned, it
-    # seems)
+    for c in h[2:]:
+        if not isHexChar(c):
+            returnDoubleHex('ERROR', form.getfirst('hex'))
+            return
     try:
-        firstDigit = int(h[2:3], 16)
-    except:
-        returnDoubleHex('ERROR', form.getfirst('hex'))
-        return
-    makeNegative = False
-    hToPass = h
-    if (firstDigit >= 8):
-        hToPass = h[0:2] + str(firstDigit - 8) + h[3:]
-        makeNegative = True
-    try:
-        i = int(hToPass[2:], 16)
+        i = int(h[2:], 16)
         d = FloatToHex.hextodouble(i, swap)
     except:
         returnDoubleHex('ERROR', form.getfirst('hex'))
         return
-    if (makeNegative):
-        d = -1.0 * d
     returnDoubleHex(d, h)
 
 form = cgi.FieldStorage()

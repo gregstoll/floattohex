@@ -58,7 +58,7 @@ FloatToHex_FloatToHex(PyObject *self, PyObject *args, PyObject *keywords)
         swapFloat(&fToUse);
     }
 
-    int i = *((int *)&fToUse);
+    unsigned int i = *((unsigned int *)&fToUse);
     return Py_BuildValue("I", i);
 }
 
@@ -90,8 +90,8 @@ FloatToHex_DoubleToHex(PyObject *self, PyObject *args, PyObject *keywords)
     if (swap != 0) {
         swapDouble(&dToUse);
     }
-    long long l = *((long long*)&dToUse);
-    return Py_BuildValue("L", l);
+    unsigned long long l = *((unsigned long long*)&dToUse);
+    return Py_BuildValue("K", l);
 }
 
 static PyObject *
@@ -100,7 +100,7 @@ FloatToHex_HexToDouble(PyObject *self, PyObject *args, PyObject *keywords)
     unsigned long long l;
     int swap = 0;
     char *keywordNames[] = {"hex", "swap", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywords, "L|p:hextodouble", keywordNames, &l, &swap))
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "K|p:hextodouble", keywordNames, &l, &swap))
         return NULL;
     double d = *((double *)&l);
     double dToReturn = d;
