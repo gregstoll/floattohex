@@ -1,0 +1,46 @@
+td.hexDigitCollapsed {
+    border: 1px solid black;    
+}
+td.binaryDigit {
+    border: 1px solid black;    
+}
+td.binaryBreakdown {
+    border: 1px solid black;    
+}
+.bitGroup.odd {
+    background-color: #cccccc;
+}
+.bitGroup.even {
+}
+
+// http://stackoverflow.com/questions/16791851/a-flash-of-color-using-pure-css-transitions
+
+@keyframes flashcolor {
+    0% {
+        background-color: yellow;
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.flash {
+    animation-name: flashcolor;
+    animation-duration: 5000ms;
+}
+
+    //animation-iteration-count: 1;
+    //animation-timing-function: linear;
+
+td.binaryDigit {
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+}
+
+td.binaryBreakdown {
+    padding-left: 0.3em;
+}
+
+td.hexDigitCollapsed {
+    text-align: center;
+}
