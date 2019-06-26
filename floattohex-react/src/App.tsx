@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 //import { NICE, SUPER_NICE } from './colors';
+import AnimateOnChange from 'react-animate-on-change';
 
 require('./style.css')
 
@@ -316,14 +317,12 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
       this.doConvert = this.doConvert.bind(this);
       this.convertToHex = this.convertToHex.bind(this);
       this.convertToFloating = this.convertToFloating.bind(this);
-      this.animationEndListener = this.animationEndListener.bind(this);
-      this.addFlash = this.addFlash.bind(this);
   }
   changeHexValue(e) {
-      this.setState({'hexValue': e.target.value});
+      this.setState({'hexValue': e.target.value, 'flash': false});
   }
   changeFloatingValue(e) {
-      this.setState({'floatingValue': e.target.value});
+      this.setState({'floatingValue': e.target.value, 'flash': false});
   }
   changeMultiplier(e) {
       this.setState({'multiplier': e.target.value});
@@ -336,24 +335,28 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
   doConvert(query, mode) {
       var that = this;
       //TODO
-      fetch('https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi?' + query).then(function(response) {
+      fetch('https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi?' + query).then(function (response) {
           return response.text();
-      }).then(function(responseText) {
+      }).then(function (responseText) {
           var xmlDoc = that.parseXml(responseText);
           var hexElem = xmlDoc.documentElement.getElementsByTagName("hex")[0];
           var hexValue = hexElem.childNodes[0].nodeValue;
           var floatingElem = xmlDoc.documentElement.getElementsByTagName(that.props.floatType.toLowerCase())[0];
-          while (hexValue.length < that.props.hexDigits+2) {
+          while (hexValue.length < that.props.hexDigits + 2) {
               hexValue = hexValue.substr(0, 2) + "0" + hexValue.substr(2);
           }
           var floatingValue = floatingElem.childNodes[0].nodeValue;
           if (mode == ConvertMode.FLOATING_TO_HEX) {
               var parsedFloatValue = parseFloat(floatingValue);
               if (!isNaN(parsedFloatValue)) {
-                  floatingValue = (parsedFloatValue/that.getNumericMultiplier()).toString();
+                  floatingValue = (parsedFloatValue / that.getNumericMultiplier()).toString();
               }
           }
-          that.setState({'hexValue': hexValue, 'floatingValue': floatingValue, 'calculatedHexValue': hexValue, 'calculatedFloatingValue': floatingValue, 'flash': true});
+          that.setState((state, _props) => {
+              // This is not great - it would be nicer to put in componentDidUpdate()
+              let isChange = hexValue !== state.calculatedHexValue || floatingValue !== state.calculatedFloatingValue;
+              return { 'hexValue': hexValue, 'floatingValue': floatingValue, 'calculatedHexValue': hexValue, 'calculatedFloatingValue': floatingValue, 'flash': isChange };
+          });
       });
   }
   getNumericMultiplier() {
@@ -371,31 +374,6 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
   convertToFloating() {
       this.doConvert('action=hexto' + this.props.floatType.toLowerCase() + '&hex=' + this.state.hexValue + '&swap=' + (this.props.flipEndianness ? '1' : '0'), ConvertMode.HEX_TO_FLOATING);
   }
-  addFlash() {
-      if (this.topLevelRef.current) {
-          this.topLevelRef.current.addEventListener("animationend", this.animationEndListener, false);
-          this.topLevelRef.current.classList.add("flash");
-      }
-  }
-  componentDidUpdate(prevProps, prevState) {
-      if (this.topLevelRef) {
-          if ((this.state.calculatedHexValue && this.state.calculatedHexValue != prevState.calculatedHexValue) ||
-              (this.state.calculatedFloatingValue && this.state.calculatedFloatingValue != prevState.calculatedFloatingValue)) {
-              if (this.topLevelRef.current.classList.contains("flash")) {
-                  this.topLevelRef.current.classList.remove("flash");
-                  setTimeout(this.addFlash, 10);
-              } else {
-                  this.addFlash();
-              }
-          }
-      }
-  }
-  animationEndListener(e) {
-      if (e.type == "animationend") {
-          this.topLevelRef.current.classList.remove("flash");
-          this.topLevelRef.current.removeEventListener("animationend", this.animationEndListener, false);
-      }
-  }
   render() {
       var multiplierSpan;
       //TODO
@@ -403,17 +381,24 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
       //    multiplierSpan = <span>&nbsp;<label htmlFor={this.props.floatType.toLowerCase() + 'Multiplier'}>Multiplier:</label><input type="text" name={this.props.floatType.toLowerCase() + 'Multiplier'} id={this.props.floatType.toLowerCase() + 'Multiplier'} value={this.state.multiplier} onChange={this.changeMultiplier}/></span>;
       //}
       return (
-      <form action="javascript:void(0);" style={this.formStyle} ref={this.topLevelRef}>
-        <p>
-            <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
-            <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={this.changeHexValue}/><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={this.convertToFloating}/>
-        </p>
-        <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} multiplier={this.state.multiplier} {...this.props}/>
-        <p>
-            <label htmlFor={this.props.floatType.toLowerCase() + 'Hex'}>{this.props.floatType + ' value:'}</label>
-            <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={this.changeFloatingValue}/>{multiplierSpan}<input type="button" value='Convert to hex' onClick={this.convertToHex}/>
-        </p>
-      </form>
+          <AnimateOnChange
+              baseClassName="hexConverter"
+              animationClassName="hexConverterFlash"
+              animate={this.state.flash}
+              customTag="div"
+              >
+              <form action="javascript:void(0);" style={this.formStyle} ref={this.topLevelRef}>
+                <p>
+                    <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
+                    <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={this.changeHexValue}/><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={this.convertToFloating}/>
+                </p>
+                <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} multiplier={this.state.multiplier} {...this.props}/>
+                <p>
+                    <label htmlFor={this.props.floatType.toLowerCase() + 'Hex'}>{this.props.floatType + ' value:'}</label>
+                    <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={this.changeFloatingValue}/>{multiplierSpan}<input type="button" value='Convert to hex' onClick={this.convertToHex}/>
+                </p>
+              </form>
+          </AnimateOnChange>
     );
   }
 }

@@ -15,6 +15,15 @@ td.binaryBreakdown {
 
 // http://stackoverflow.com/questions/16791851/a-flash-of-color-using-pure-css-transitions
 
+.hexConverter {
+    background-color: transparent;
+}
+
+.hexConverter.hexConverterFlash {
+    animation-name: flashcolor;
+    animation-duration: 500ms;
+}
+
 @keyframes flashcolor {
     0% {
         background-color: yellow;
@@ -23,14 +32,6 @@ td.binaryBreakdown {
         background-color: transparent;
     }
 }
-
-.flash {
-    animation-name: flashcolor;
-    animation-duration: 5000ms;
-}
-
-    //animation-iteration-count: 1;
-    //animation-timing-function: linear;
 
 td.binaryDigit {
     padding-left: 0.3em;
