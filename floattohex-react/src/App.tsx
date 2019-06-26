@@ -54,23 +54,29 @@ require('./style.css')
   }
   */
 
-class HexFloatBreakdown extends Component<any, any> {
+interface HexFloatBreakdownProps extends HexConverterProps {
+    hexValue: string,
+    floatingValue: string,
+    multiplier: string
+}
+
+class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
   bits: string[];
   denormalizedZeros: boolean;
   denormalizedOnes: boolean;
   hexValueToUse: string;
   flippedDescription: string;
   floatingValueDisplay: string;
-  constructor(props: any) {
+  constructor(props) {
       super(props);
 
       this.bits = [];
-      for (var i = 0; i < this.props.hexDigits; ++i) {
-          var binaryString = parseInt(this.props.hexValue.substr(2 + i, 1), 16).toString(2);
+      for (let i = 0; i < this.props.hexDigits; ++i) {
+          let binaryString = parseInt(this.props.hexValue.substr(2 + i, 1), 16).toString(2);
           while (binaryString.length < 4) {
               binaryString = "0" + binaryString;
           }
-          for (var j = 0; j < 4; ++j) {
+          for (let j = 0; j < 4; ++j) {
               this.bits.push(binaryString.substr(j, 1));
           }
       }
@@ -86,19 +92,19 @@ class HexFloatBreakdown extends Component<any, any> {
       this.classNameFromBitIndex = this.classNameFromBitIndex.bind(this);
       this.wrapBitsInClassName = this.wrapBitsInClassName.bind(this);
       this.getNumericMultiplier = this.getNumericMultiplier.bind(this);
-  }
-  getSignExpression(phase) {
-      var bit = this.bits[0];
-      var one = bit === "1" ? "-1" : "+1";
+    }
+  getSignExpression(phase: number) {
+      let bit = this.bits[0];
+      let one = bit === "1" ? "-1" : "+1";
       if (phase > 0) {
           one += " *";
       }
       return one;
   }
-  getExponentExpression(phase) {
-      var expressionBits = this.getExponentBits().join('');
-      var exponent = parseInt(expressionBits, 2);
-      if (phase == 0)
+  getExponentExpression(phase: number) {
+      let expressionBits = this.getExponentBits().join('');
+      let exponent = parseInt(expressionBits, 2);
+      if (phase === 0)
       {
           if (this.denormalizedZeros) {
               return {__html: exponent + ' <b>subnormal</b>'};
@@ -108,7 +114,7 @@ class HexFloatBreakdown extends Component<any, any> {
           }
           return {__html: exponent + ""};
       }
-      if (phase == 1)
+      if (phase === 1)
       {
           if (this.denormalizedZeros) {
               return { __html: "2^" + (1 - this.props.exponentBias) + " *" };
@@ -118,12 +124,12 @@ class HexFloatBreakdown extends Component<any, any> {
           }
           return { __html: "2^(" + exponent + " - " + this.props.exponentBias + ") *" };
       }
-      if (phase == 2)
+      if (phase === 2)
       {
           if (this.denormalizedOnes) {
               return { __html: "" };
           }
-          var power = exponent - this.props.exponentBias;
+          let power = exponent - this.props.exponentBias;
           if (this.denormalizedZeros) {
               power = 1 - this.props.exponentBias;
           }
@@ -133,10 +139,10 @@ class HexFloatBreakdown extends Component<any, any> {
       //TODO assert or something
       return { __html: "" };
   }
-  getMantissaExpression(phase) {
-      var expressionBits = this.getMantissaBits().join('');
+  getMantissaExpression(phase: number) {
+      let expressionBits = this.getMantissaBits().join('');
       if (this.denormalizedOnes) {
-          var mantissaAllZeros = this.getMantissaBits().reduce((pre, cur) => pre && (cur === "0"), true);
+          let mantissaAllZeros = this.getMantissaBits().reduce((pre, cur) => pre && (cur === "0"), true);
           if (mantissaAllZeros) {
               return "Infinity (since all zeros)";
           }
@@ -144,13 +150,13 @@ class HexFloatBreakdown extends Component<any, any> {
               return "NaN (since non-zero)";
           }
       }
-      var leadingDigit = this.denormalizedZeros ? 0 : 1;
-      if (phase == 0)
+      let leadingDigit = this.denormalizedZeros ? 0 : 1;
+      if (phase === 0)
       {
           return leadingDigit + "." + expressionBits + " (binary)";
       }
       // can't parse float in base 2 :-(
-      var value = parseInt(expressionBits, 2) / Math.pow(2, this.props.fractionBits);
+      let value = parseInt(expressionBits, 2) / Math.pow(2, this.props.fractionBits);
       return leadingDigit + value;
   }
   getExponentBits() {
@@ -159,16 +165,16 @@ class HexFloatBreakdown extends Component<any, any> {
   getMantissaBits() {
       return this.bits.slice(1+this.props.exponentBits);
   }
-  classNameFromBitIndex(index) {
-      return "bitGroup " + ((Math.floor(index/4) % 2 == 0) ? "even" : "odd");
+  classNameFromBitIndex(index: number) {
+      return "bitGroup " + ((Math.floor(index/4) % 2 === 0) ? "even" : "odd");
   }
-  wrapBitsInClassName(bits, startingIndex) {
-      var spans = [];
-      var curSpanText = bits[0];
-      var curClassName = this.classNameFromBitIndex(startingIndex);
-      for (var i = 1; i < bits.length; ++i) {
-          var newClassName = this.classNameFromBitIndex(startingIndex + i);
-          if (curClassName == newClassName) {
+  wrapBitsInClassName(bits: string[], startingIndex: number) {
+      let spans = [];
+      let curSpanText = bits[0];
+      let curClassName = this.classNameFromBitIndex(startingIndex);
+      for (let i = 1; i < bits.length; ++i) {
+          let newClassName = this.classNameFromBitIndex(startingIndex + i);
+          if (curClassName === newClassName) {
               // accumulate
               curSpanText += bits[i];
           }
@@ -182,15 +188,15 @@ class HexFloatBreakdown extends Component<any, any> {
       spans.push(<span className={curClassName} key="last">{curSpanText}</span>);
       return spans;
   }
-  flipHexString(hexValue, hexDigits) {
-      var h = hexValue.substr(0, 2);
-      for (var i = 0; i < hexDigits; ++i) {
+  flipHexString(hexValue: string, hexDigits: number) {
+      let h = hexValue.substr(0, 2);
+      for (let i = 0; i < hexDigits; ++i) {
           h += hexValue.substr(2 + (hexDigits - 1 - i) * 2, 2);
       }
       return h;
   }
   getNumericMultiplier() {
-      var num = parseFloat(this.props.multiplier);
+      let num = parseFloat(this.props.multiplier);
       if (!isNaN(num)) {
           return num;
       }
@@ -199,7 +205,7 @@ class HexFloatBreakdown extends Component<any, any> {
   render() {
     if (this.props.hexValue === '' || this.props.hexValue === 'ERROR'
       || this.props.floatingValue === '' || this.props.floatingValue === 'ERROR'
-      || this.props.hexValue.length != 2 + this.props.hexDigits
+      || this.props.hexValue.length !== 2 + this.props.hexDigits
       || !this.props.showExplanation)
     {
         return <div style={{'display': 'none'}}/>;
@@ -208,25 +214,25 @@ class HexFloatBreakdown extends Component<any, any> {
     if (this.props.flipEndianness) {
         this.hexValueToUse = this.flipHexString(this.hexValueToUse, this.props.hexDigits);
     }
-    var hexDigitsTds = [];
-    for (var i = 0; i < this.props.hexDigits; ++i) {
+    let hexDigitsTds = [];
+    for (let i = 0; i < this.props.hexDigits; ++i) {
         hexDigitsTds.push(<td colSpan={4} className={"hexDigitCollapsed " + this.classNameFromBitIndex(4*i)} key={"hexDigitCollapsed" + i}>{this.hexValueToUse.substr(2 + i, 1)}</td>);
     }
     this.bits = [];
-    for (var i = 0; i < this.props.hexDigits; ++i) {
-        var binaryString = parseInt(this.hexValueToUse.substr(2 + i, 1), 16).toString(2);
+    for (let i = 0; i < this.props.hexDigits; ++i) {
+        let binaryString = parseInt(this.hexValueToUse.substr(2 + i, 1), 16).toString(2);
         while (binaryString.length < 4) {
             binaryString = "0" + binaryString;
         }
-        for (var j = 0; j < 4; ++j) {
+        for (let j = 0; j < 4; ++j) {
             this.bits.push(binaryString.substr(j, 1));
         }
     }
-    var binaryDigitsTds = [];
-    for (var i = 0; i < this.bits.length; ++i) {
+    let binaryDigitsTds = [];
+    for (let i = 0; i < this.bits.length; ++i) {
         binaryDigitsTds.push(<td className={"binaryDigit " + this.classNameFromBitIndex(i)} key={"binaryDigit" + i}>{this.bits[i]}</td>);
     }
-    var binaryBreakdownTds = [];
+    let binaryBreakdownTds = [];
     binaryBreakdownTds.push(<td className={"binaryBreakdown sign " + this.classNameFromBitIndex(0)} key="sign">{this.bits[0]}</td>);
     binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(), 1)}</td>);
     binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(), 1 + this.props.exponentBits)}</td>);
@@ -235,8 +241,8 @@ class HexFloatBreakdown extends Component<any, any> {
     this.denormalizedOnes = this.getExponentBits().reduce((pre, cur) => pre && (cur === "1"), true);
     this.flippedDescription = this.props.flipEndianness ? ' (swapped endianness)': '';
     this.floatingValueDisplay = this.props.floatingValue;
-    if (this.getNumericMultiplier() != 1) {
-        var floatValue = parseFloat(this.props.floatingValue);
+    if (this.getNumericMultiplier() !== 1) {
+        let floatValue = parseFloat(this.props.floatingValue);
         if (!isNaN(floatValue)) {
             this.floatingValueDisplay = this.props.floatingValue + ' * ' + this.props.multiplier + ' = ' + (floatValue * this.getNumericMultiplier());
         }
@@ -258,18 +264,8 @@ class HexFloatBreakdown extends Component<any, any> {
     );
   }
 }
-//TODO
-//HexFloatBreakdown.propTypes = {
-//    hexValue: React.PropTypes.string.isRequired,
-//    floatingValue: React.PropTypes.string.isRequired,
-//    hexDigits: React.PropTypes.number.isRequired,
-//    exponentBits: React.PropTypes.number.isRequired,
-//    exponentBias: React.PropTypes.number.isRequired,
-//    fractionBits: React.PropTypes.number.isRequired,
-//    decimalPrecision: React.PropTypes.number.isRequired,
-//    showExplanation: React.PropTypes.bool,
-//};
 
+//TODO enum
 var ConvertMode = {
     HEX_TO_FLOATING: 1,
     FLOATING_TO_HEX: 2
@@ -298,7 +294,6 @@ interface HexConverterState {
 
 class HexConverter extends Component<HexConverterProps, HexConverterState> {
   formStyle: React.CSSProperties;
-  topLevelRef: React.RefObject<HTMLFormElement>;
   constructor(props) {
       super(props);
 
@@ -308,7 +303,6 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
       if (props.marginTop) {
           this.formStyle['marginTop'] = props.marginTop + 'px';
       }
-      this.topLevelRef = React.createRef<HTMLFormElement>();
 
       this.changeHexValue = this.changeHexValue.bind(this);
       this.changeFloatingValue = this.changeFloatingValue.bind(this);
@@ -317,37 +311,38 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
       this.doConvert = this.doConvert.bind(this);
       this.convertToHex = this.convertToHex.bind(this);
       this.convertToFloating = this.convertToFloating.bind(this);
-  }
-  changeHexValue(e) {
+    }
+  changeHexValue(e: React.ChangeEvent<HTMLInputElement>) {
       this.setState({'hexValue': e.target.value, 'flash': false});
-  }
-  changeFloatingValue(e) {
+    }
+  changeFloatingValue(e: React.ChangeEvent<HTMLInputElement>) {
       this.setState({'floatingValue': e.target.value, 'flash': false});
   }
-  changeMultiplier(e) {
+  changeMultiplier(e: React.ChangeEvent<HTMLInputElement>) {
       this.setState({'multiplier': e.target.value});
   }
-  parseXml(s) {
+  parseXml(s: string) {
       let parser = new DOMParser();
       let xmlDoc = parser.parseFromString(s, "text/xml");
       return xmlDoc;
   }
-  doConvert(query, mode) {
-      var that = this;
+  //TODO enum
+  doConvert(query: string, mode) {
+      let that = this;
       //TODO
       fetch('https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi?' + query).then(function (response) {
           return response.text();
       }).then(function (responseText) {
-          var xmlDoc = that.parseXml(responseText);
-          var hexElem = xmlDoc.documentElement.getElementsByTagName("hex")[0];
-          var hexValue = hexElem.childNodes[0].nodeValue;
-          var floatingElem = xmlDoc.documentElement.getElementsByTagName(that.props.floatType.toLowerCase())[0];
+          let xmlDoc = that.parseXml(responseText);
+          let hexElem = xmlDoc.documentElement.getElementsByTagName("hex")[0];
+          let hexValue = hexElem.childNodes[0].nodeValue;
+          let floatingElem = xmlDoc.documentElement.getElementsByTagName(that.props.floatType.toLowerCase())[0];
           while (hexValue.length < that.props.hexDigits + 2) {
               hexValue = hexValue.substr(0, 2) + "0" + hexValue.substr(2);
           }
-          var floatingValue = floatingElem.childNodes[0].nodeValue;
-          if (mode == ConvertMode.FLOATING_TO_HEX) {
-              var parsedFloatValue = parseFloat(floatingValue);
+          let floatingValue = floatingElem.childNodes[0].nodeValue;
+          if (mode === ConvertMode.FLOATING_TO_HEX) {
+              let parsedFloatValue = parseFloat(floatingValue);
               if (!isNaN(parsedFloatValue)) {
                   floatingValue = (parsedFloatValue / that.getNumericMultiplier()).toString();
               }
@@ -360,14 +355,14 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
       });
   }
   getNumericMultiplier() {
-      var num = parseFloat(this.state.multiplier);
+      let num = parseFloat(this.state.multiplier);
       if (!isNaN(num)) {
           return num;
       }
       return 1;
   }
   convertToHex() {
-      var floatValue = parseFloat(this.state.floatingValue);
+      let floatValue = parseFloat(this.state.floatingValue);
       floatValue *= this.getNumericMultiplier();
       this.doConvert('action=' + this.props.floatType.toLowerCase() + 'tohex&' + this.props.floatType.toLowerCase() + '=' + floatValue.toString().replace('+', '%2B') + '&swap=' + (this.props.flipEndianness ? '1' : '0'), ConvertMode.FLOATING_TO_HEX);
   }
@@ -375,7 +370,7 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
       this.doConvert('action=hexto' + this.props.floatType.toLowerCase() + '&hex=' + this.state.hexValue + '&swap=' + (this.props.flipEndianness ? '1' : '0'), ConvertMode.HEX_TO_FLOATING);
   }
   render() {
-      var multiplierSpan;
+      let multiplierSpan;
       //TODO
       //if (Config.multiplier) {
       //    multiplierSpan = <span>&nbsp;<label htmlFor={this.props.floatType.toLowerCase() + 'Multiplier'}>Multiplier:</label><input type="text" name={this.props.floatType.toLowerCase() + 'Multiplier'} id={this.props.floatType.toLowerCase() + 'Multiplier'} value={this.state.multiplier} onChange={this.changeMultiplier}/></span>;
@@ -387,7 +382,7 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
               animate={this.state.flash}
               customTag="div"
               >
-              <form action="javascript:void(0);" style={this.formStyle} ref={this.topLevelRef}>
+              <form style={this.formStyle}>
                 <p>
                     <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
                     <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={this.changeHexValue}/><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={this.convertToFloating}/>
@@ -412,13 +407,13 @@ class App extends Component<{}, AppState> {
   constructor(props) {
       super(props);
       // parse query hash
-      var showExplanation = true;
+      let showExplanation = true;
       if (window.location.search) {
-          var hash = window.location.search.substring(1);
-          var parts = hash.split('&');
-          for (var i = 0; i < parts.length; ++i) {
+          let hash = window.location.search.substring(1);
+          let parts = hash.split('&');
+          for (let i = 0; i < parts.length; ++i) {
               // hacky
-              if (parts[i] == 'showExplanation=0') {
+              if (parts[i] === 'showExplanation=0') {
                   showExplanation = false;
               }
           }
@@ -427,12 +422,12 @@ class App extends Component<{}, AppState> {
 
       this.handleExplanationChange = this.handleExplanationChange.bind(this);
       this.handleEndiannessChange = this.handleEndiannessChange.bind(this);
-  }
-  handleExplanationChange(event) {
+    }
+  handleExplanationChange(event: React.ChangeEvent<HTMLInputElement>) {
       // a little hacky?
       this.setState({'showExplanation': !this.state.showExplanation});
-  }
-  handleEndiannessChange(event) {
+    }
+  handleEndiannessChange(event: React.ChangeEvent<HTMLInputElement>) {
       // a little hacky?
       this.setState({'flipEndianness': !this.state.flipEndianness});
   }
