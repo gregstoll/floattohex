@@ -26,7 +26,7 @@ require('./style.css')
   }
   // Shift
   value = value.toString().split('e');
-  var origPower = value[1] ? (+value[1]) : 0;
+  let origPower = value[1] ? (+value[1]) : 0;
   value = Math[type](+(value[0] + 'e' + (-exp)));
   //value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
   // Shift back
@@ -229,8 +229,8 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(), 1)}</td>);
         binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(), 1 + this.props.exponentBits)}</td>);
 
-        this.denormalizedZeros = this.getExponentBits().reduce((pre, cur) => pre && (cur === "0"), true);
-        this.denormalizedOnes = this.getExponentBits().reduce((pre, cur) => pre && (cur === "1"), true);
+        this.denormalizedZeros = this.getExponentBits().reduce((pre: boolean, cur: string) => (pre && (cur === "0")), true);
+        this.denormalizedOnes = this.getExponentBits().reduce((pre: boolean, cur: string) => pre && (cur === "1"), true);
         let flippedDescription = this.props.flipEndianness ? ' (swapped endianness)' : '';
         let floatingValueDisplay = this.props.floatingValue;
         if (this.getNumericMultiplier() !== 1) {
@@ -323,14 +323,17 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
         fetch('https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi?' + query).then(function (response) {
             return response.text();
         }).then(function (responseText) {
-            let xmlDoc = that.parseXml(responseText);
-            let hexElem = xmlDoc.documentElement.getElementsByTagName("hex")[0];
-            let hexValue = hexElem.childNodes[0].nodeValue;
-            let floatingElem = xmlDoc.documentElement.getElementsByTagName(that.props.floatType.toLowerCase())[0];
+            let documentElement = that.parseXml(responseText).documentElement;
+            if (documentElement === null) {
+                return;
+            }
+            let hexElem: Element = documentElement.getElementsByTagName("hex")[0];
+            let hexValue: string = hexElem.childNodes[0].nodeValue || "";
+            let floatingElem: Element = documentElement.getElementsByTagName(that.props.floatType.toLowerCase())[0];
             while (hexValue.length < that.props.hexDigits + 2) {
                 hexValue = hexValue.substr(0, 2) + "0" + hexValue.substr(2);
             }
-            let floatingValue = floatingElem.childNodes[0].nodeValue;
+            let floatingValue : string = floatingElem.childNodes[0].nodeValue || "";
             if (mode === ConvertMode.FLOATING_TO_HEX) {
                 let parsedFloatValue = parseFloat(floatingValue);
                 if (!isNaN(parsedFloatValue)) {
