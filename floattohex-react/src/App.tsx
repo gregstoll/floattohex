@@ -64,9 +64,6 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
     bits: string[];
     denormalizedZeros: boolean;
     denormalizedOnes: boolean;
-    hexValueToUse: string;
-    flippedDescription: string;
-    floatingValueDisplay: string;
     constructor(props: HexFloatBreakdownProps) {
         super(props);
 
@@ -205,17 +202,17 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
             || !this.props.showExplanation) {
             return <div style={{ 'display': 'none' }} />;
         }
-        this.hexValueToUse = this.props.hexValue;
+        let hexValueToUse = this.props.hexValue;
         if (this.props.flipEndianness) {
-            this.hexValueToUse = this.flipHexString(this.hexValueToUse, this.props.hexDigits);
+            hexValueToUse = this.flipHexString(hexValueToUse, this.props.hexDigits);
         }
         let hexDigitsTds = [];
         for (let i = 0; i < this.props.hexDigits; ++i) {
-            hexDigitsTds.push(<td colSpan={4} className={"hexDigitCollapsed " + this.classNameFromBitIndex(4 * i)} key={"hexDigitCollapsed" + i}>{this.hexValueToUse.substr(2 + i, 1)}</td>);
+            hexDigitsTds.push(<td colSpan={4} className={"hexDigitCollapsed " + this.classNameFromBitIndex(4 * i)} key={"hexDigitCollapsed" + i}>{hexValueToUse.substr(2 + i, 1)}</td>);
         }
         this.bits = [];
         for (let i = 0; i < this.props.hexDigits; ++i) {
-            let binaryString = parseInt(this.hexValueToUse.substr(2 + i, 1), 16).toString(2);
+            let binaryString = parseInt(hexValueToUse.substr(2 + i, 1), 16).toString(2);
             while (binaryString.length < 4) {
                 binaryString = "0" + binaryString;
             }
@@ -234,18 +231,18 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
 
         this.denormalizedZeros = this.getExponentBits().reduce((pre, cur) => pre && (cur === "0"), true);
         this.denormalizedOnes = this.getExponentBits().reduce((pre, cur) => pre && (cur === "1"), true);
-        this.flippedDescription = this.props.flipEndianness ? ' (swapped endianness)' : '';
-        this.floatingValueDisplay = this.props.floatingValue;
+        let flippedDescription = this.props.flipEndianness ? ' (swapped endianness)' : '';
+        let floatingValueDisplay = this.props.floatingValue;
         if (this.getNumericMultiplier() !== 1) {
             let floatValue = parseFloat(this.props.floatingValue);
             if (!isNaN(floatValue)) {
-                this.floatingValueDisplay = this.props.floatingValue + ' * ' + this.props.multiplier + ' = ' + (floatValue * this.getNumericMultiplier());
+                floatingValueDisplay = this.props.floatingValue + ' * ' + this.props.multiplier + ' = ' + (floatValue * this.getNumericMultiplier());
             }
         }
         return (
             <table className="hexFloat">
                 <tbody>
-                    <tr><td colSpan={this.props.hexDigits * 4}>{this.hexValueToUse}{this.flippedDescription}</td></tr>
+                    <tr><td colSpan={this.props.hexDigits * 4}>{hexValueToUse}{flippedDescription}</td></tr>
                     <tr>{hexDigitsTds}</tr>
                     <tr>{binaryDigitsTds}</tr>
                     <tr>{binaryBreakdownTds}</tr>
@@ -253,7 +250,7 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                     <tr><td colSpan={3}>{this.getSignExpression(0)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(0)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(0)}</td></tr>
                     <tr><td colSpan={3}>{this.getSignExpression(1)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(1)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(1)}</td></tr>
                     <tr><td colSpan={3}>{this.getSignExpression(2)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(2)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(2)}</td></tr>
-                    <tr><td colSpan={this.props.hexDigits * 4}>{this.floatingValueDisplay}</td></tr>
+                    <tr><td colSpan={this.props.hexDigits * 4}>{floatingValueDisplay}</td></tr>
                 </tbody>
             </table>
         );
