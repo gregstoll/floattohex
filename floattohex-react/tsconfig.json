@@ -1,5 +1,4 @@
 {
-  "extends": "./tsconfig-compiler.json",
   "compilerOptions": {
     "target": "es5",
     "lib": [
@@ -18,7 +17,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
-    "strict": false
+    "strict": true
   },
   "include": [
     "src"

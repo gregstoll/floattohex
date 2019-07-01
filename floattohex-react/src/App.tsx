@@ -67,7 +67,7 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
   hexValueToUse: string;
   flippedDescription: string;
   floatingValueDisplay: string;
-  constructor(props) {
+  constructor(props: HexFloatBreakdownProps) {
       super(props);
 
       this.bits = [];
@@ -265,12 +265,6 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
   }
 }
 
-//TODO enum
-var ConvertMode = {
-    HEX_TO_FLOATING: 1,
-    FLOATING_TO_HEX: 2
-};
-
 interface HexConverterProps {
     marginTop?: number,
     floatType: string,
@@ -292,9 +286,14 @@ interface HexConverterState {
     flash: boolean
 }
 
+enum ConvertMode {
+    HEX_TO_FLOATING,
+    FLOATING_TO_HEX
+};
+
 class HexConverter extends Component<HexConverterProps, HexConverterState> {
   formStyle: React.CSSProperties;
-  constructor(props) {
+  constructor(props: HexConverterProps) {
       super(props);
 
       //console.log('HexConverter: ' + props);
@@ -326,8 +325,7 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
       let xmlDoc = parser.parseFromString(s, "text/xml");
       return xmlDoc;
   }
-  //TODO enum
-  doConvert(query: string, mode) {
+  doConvert(query: string, mode: ConvertMode) {
       let that = this;
       //TODO
       fetch('https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi?' + query).then(function (response) {
@@ -404,7 +402,7 @@ interface AppState {
 }
 
 class App extends Component<{}, AppState> {
-  constructor(props) {
+    constructor(props: {}) {
       super(props);
       // parse query hash
       let showExplanation = true;
