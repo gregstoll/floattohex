@@ -13,5 +13,10 @@ fs.readFile("build/index.html", 'utf8', function (err, contents) {
         if (err) {
             return console.error(err);
         }
+        fs.chmod("build/index.html", 0o775, function (err) {
+            if (err) {
+                return console.error(err);
+            }
+        });
     });
 });
