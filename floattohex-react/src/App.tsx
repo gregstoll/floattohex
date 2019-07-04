@@ -319,8 +319,7 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
     }
     doConvert(query: string, mode: ConvertMode) {
         let that = this;
-        //TODO
-        fetch('https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi?' + query).then(function (response) {
+        fetch('floattohex.cgi?' + query).then(function (response) {
             return response.text();
         }).then(function (responseText) {
             let documentElement = that.parseXml(responseText).documentElement;
