@@ -4,15 +4,13 @@ import AnimateOnChange from 'react-animate-on-change';
 
 require('./style.css')
 
-//TODO
-//const SCRIPT_URI = 'floattohex.cgi';
-const SCRIPT_URI = "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi";
+const SCRIPT_URI = 'floattohex.cgi';
+//const SCRIPT_URI = "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi";
 interface HexFloatBreakdownProps extends HexConverterProps {
     hexValue: string,
     floatingValue: string,
     multiplier: string
 }
-
 
 enum BreakdownPhase {
     RAW_BITS,
@@ -300,7 +298,7 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
         let multiplierSpan;
         //TODO
         //if (Config.multiplier) {
-        //    multiplierSpan = <span>&nbsp;<label htmlFor={this.props.floatType.toLowerCase() + 'Multiplier'}>Multiplier:</label><input type="text" name={this.props.floatType.toLowerCase() + 'Multiplier'} id={this.props.floatType.toLowerCase() + 'Multiplier'} value={this.state.multiplier} onChange={e => this.changeMultiplier(e)}/></span>;
+        //    multiplierSpan = <span>&nbsp;<label>Multiplier: <input type="text" value={this.state.multiplier} onChange={e => this.changeMultiplier(e)}/></label></span>;
         //}
         return (
             <AnimateOnChange
@@ -311,13 +309,13 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
             >
                 <form style={this.formStyle}>
                     <p>
-                        <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
-                        <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={e => this.changeHexValue(e)} /><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={() => this.convertToFloating()} />
+                        <label>Hex value: <input type="text" value={this.state.hexValue} onChange={e => this.changeHexValue(e)} /></label>
+                        <input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={() => this.convertToFloating()} />
                     </p>
                     <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} multiplier={this.state.multiplier} {...this.props} />
                     <p>
-                        <label htmlFor={this.props.floatType.toLowerCase() + 'Hex'}>{this.props.floatType + ' value:'}</label>
-                        <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={e => this.changeFloatingValue(e)} />{multiplierSpan}<input type="button" value='Convert to hex' onClick={() => this.convertToHex()} />
+                        <label>{this.props.floatType + ' value:'} <input type="text" value={this.state.floatingValue} onChange={e => this.changeFloatingValue(e)} /></label>
+                        {multiplierSpan}<input type="button" value='Convert to hex' onClick={() => this.convertToHex()} />
                     </p>
                 </form>
             </AnimateOnChange>
@@ -357,13 +355,11 @@ class App extends Component<{}, AppState> {
         return (
             <div>
                 <div>
-                    <input type="checkbox" checked={this.state.showExplanation} id="showExplanation" onChange={e => this.handleExplanationChange(e)} />
+                    <label><input type="checkbox" checked={this.state.showExplanation} onChange={e => this.handleExplanationChange(e)} />
+                            Show details</label>
                     &nbsp;
-                <label htmlFor="showExplanation">Show details</label>
-                    &nbsp;
-                <input type="checkbox" checked={this.state.flipEndianness} id="flipEndianness" onChange={e => this.handleEndiannessChange(e)} />
-                    &nbsp;
-                <label htmlFor="flipEndianness">Swap endianness</label>
+                    <label><input type="checkbox" checked={this.state.flipEndianness} onChange={e => this.handleEndiannessChange(e)} />
+                            Swap endianness</label>
                 </div>
                 <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9} showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} />
                 <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17} showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} />
