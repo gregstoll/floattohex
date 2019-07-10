@@ -356,10 +356,10 @@ class App extends Component<{}, AppState> {
             <div>
                 <div>
                     <label><input type="checkbox" checked={this.state.showExplanation} onChange={e => this.handleExplanationChange(e)} />
-                            Show details</label>
+                            &nbsp;Show details</label>
                     &nbsp;
                     <label><input type="checkbox" checked={this.state.flipEndianness} onChange={e => this.handleEndiannessChange(e)} />
-                            Swap endianness</label>
+                            &nbsp;Swap endianness</label>
                 </div>
                 <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9} showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} />
                 <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17} showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} />
