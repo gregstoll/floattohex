@@ -5,14 +5,20 @@ import AnimateOnChange from 'react-animate-on-change';
 require('./style.css')
 
 //TODO
-const SCRIPT_URI = 'floattohex.cgi';
-//const SCRIPT_URI = "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi";
+//const SCRIPT_URI = 'floattohex.cgi';
+const SCRIPT_URI = "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi";
 interface HexFloatBreakdownProps extends HexConverterProps {
     hexValue: string,
     floatingValue: string,
     multiplier: string
 }
 
+
+enum BreakdownPhase {
+    RAW_BITS,
+    INTERMEDIATE,
+    FLOAT_VALUES
+}
 class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
     denormalizedZeros: boolean;
     denormalizedOnes: boolean;
@@ -22,50 +28,50 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         this.denormalizedZeros = false;
         this.denormalizedOnes = false;
     }
-    getSignExpression(bits: string[], phase: number) {
+    getSignExpression(bits: string[], phase: BreakdownPhase) {
         let bit = bits[0];
         let one = bit === "1" ? "-1" : "+1";
-        if (phase > 0) {
+        if (phase !== BreakdownPhase.RAW_BITS) {
             one += " *";
         }
         return one;
     }
-    getExponentExpression(bits: string[], phase: number) {
+    getExponentExpression(bits: string[], phase: BreakdownPhase) {
         let expressionBits = this.getExponentBits(bits).join('');
         let exponent = parseInt(expressionBits, 2);
-        if (phase === 0) {
-            if (this.denormalizedZeros) {
-                return { __html: exponent + ' <b>subnormal</b>' };
+        switch (phase) {
+            case BreakdownPhase.RAW_BITS: {
+                if (this.denormalizedZeros) {
+                    return { __html: exponent + ' <b>subnormal</b>' };
+                }
+                else if (this.denormalizedOnes) {
+                    return { __html: exponent + ' <b>special</b>' };
+                }
+                return { __html: exponent + "" };
             }
-            else if (this.denormalizedOnes) {
-                return { __html: exponent + ' <b>special</b>' };
+            case BreakdownPhase.INTERMEDIATE: {
+                if (this.denormalizedZeros) {
+                    return { __html: "2^" + (1 - this.props.exponentBias) + " *" };
+                }
+                else if (this.denormalizedOnes) {
+                    return { __html: "" };
+                }
+                return { __html: "2^(" + exponent + " - " + this.props.exponentBias + ") *" };
             }
-            return { __html: exponent + "" };
+            case BreakdownPhase.FLOAT_VALUES: {
+                if (this.denormalizedOnes) {
+                    return { __html: "" };
+                }
+                let power = exponent - this.props.exponentBias;
+                if (this.denormalizedZeros) {
+                    power = 1 - this.props.exponentBias;
+                }
+                //return Math.round10(Math.pow(2, power), -1 * this.props.decimalPrecision) + " *";
+                return { __html: Math.pow(2, power).toPrecision(this.props.decimalPrecision) + " *" };
+            }
         }
-        if (phase === 1) {
-            if (this.denormalizedZeros) {
-                return { __html: "2^" + (1 - this.props.exponentBias) + " *" };
-            }
-            else if (this.denormalizedOnes) {
-                return { __html: "" };
-            }
-            return { __html: "2^(" + exponent + " - " + this.props.exponentBias + ") *" };
-        }
-        if (phase === 2) {
-            if (this.denormalizedOnes) {
-                return { __html: "" };
-            }
-            let power = exponent - this.props.exponentBias;
-            if (this.denormalizedZeros) {
-                power = 1 - this.props.exponentBias;
-            }
-            //return Math.round10(Math.pow(2, power), -1 * this.props.decimalPrecision) + " *";
-            return { __html: Math.pow(2, power).toPrecision(this.props.decimalPrecision) + " *" };
-        }
-        //TODO assert or something
-        return { __html: "" };
     }
-    getMantissaExpression(bits: string[], phase: number) {
+    getMantissaExpression(bits: string[], phase: BreakdownPhase) {
         let expressionBits = this.getMantissaBits(bits).join('');
         if (this.denormalizedOnes) {
             let mantissaAllZeros = this.getMantissaBits(bits).reduce((pre, cur) => pre && (cur === "0"), true);
@@ -77,7 +83,7 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
             }
         }
         let leadingDigit = this.denormalizedZeros ? 0 : 1;
-        if (phase === 0) {
+        if (phase === BreakdownPhase.RAW_BITS) {
             return leadingDigit + "." + expressionBits + " (binary)";
         }
         // can't parse float in base 2 :-(
@@ -171,6 +177,13 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                 floatingValueDisplay = this.props.floatingValue + ' * ' + this.props.multiplier + ' = ' + (floatValue * this.getNumericMultiplier());
             }
         }
+        let breakdownRows = [];
+        for (let phase of [BreakdownPhase.RAW_BITS, BreakdownPhase.INTERMEDIATE, BreakdownPhase.FLOAT_VALUES]) {
+            breakdownRows.push(<tr key={"breakdownRow" + phase.toString()}>
+                <td colSpan={3}>{this.getSignExpression(bits, phase)}</td>
+                <td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(bits, phase)} />
+                <td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(bits, phase)}</td></tr>);
+        }
         return (
             <table className="hexFloat">
                 <tbody>
@@ -179,9 +192,7 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                     <tr>{binaryDigitsTds}</tr>
                     <tr>{binaryBreakdownTds}</tr>
                     <tr><td colSpan={3}>sign</td><td colSpan={1 + this.props.exponentBits - 3}>exponent</td><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>mantissa</td></tr>
-                    <tr><td colSpan={3}>{this.getSignExpression(bits, 0)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(bits, 0)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(bits, 0)}</td></tr>
-                    <tr><td colSpan={3}>{this.getSignExpression(bits, 1)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(bits, 1)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(bits, 1)}</td></tr>
-                    <tr><td colSpan={3}>{this.getSignExpression(bits, 2)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(bits, 2)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(bits, 2)}</td></tr>
+                    {breakdownRows}
                     <tr><td colSpan={this.props.hexDigits * 4}>{floatingValueDisplay}</td></tr>
                 </tbody>
             </table>
