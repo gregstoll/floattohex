@@ -4,6 +4,9 @@ import AnimateOnChange from 'react-animate-on-change';
 
 require('./style.css')
 
+//TODO
+const SCRIPT_URI = 'floattohex.cgi';
+//const SCRIPT_URI = "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi";
 interface HexFloatBreakdownProps extends HexConverterProps {
     hexValue: string,
     floatingValue: string,
@@ -11,45 +14,24 @@ interface HexFloatBreakdownProps extends HexConverterProps {
 }
 
 class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
-    bits: string[];
     denormalizedZeros: boolean;
     denormalizedOnes: boolean;
     constructor(props: HexFloatBreakdownProps) {
         super(props);
 
-        this.bits = [];
-        for (let i = 0; i < this.props.hexDigits; ++i) {
-            let binaryString = parseInt(this.props.hexValue.substr(2 + i, 1), 16).toString(2);
-            while (binaryString.length < 4) {
-                binaryString = "0" + binaryString;
-            }
-            for (let j = 0; j < 4; ++j) {
-                this.bits.push(binaryString.substr(j, 1));
-            }
-        }
-
         this.denormalizedZeros = false;
         this.denormalizedOnes = false;
-
-        this.getSignExpression = this.getSignExpression.bind(this);
-        this.getExponentExpression = this.getExponentExpression.bind(this);
-        this.getMantissaExpression = this.getMantissaExpression.bind(this);
-        this.getExponentBits = this.getExponentBits.bind(this);
-        this.getMantissaBits = this.getMantissaBits.bind(this);
-        this.classNameFromBitIndex = this.classNameFromBitIndex.bind(this);
-        this.wrapBitsInClassName = this.wrapBitsInClassName.bind(this);
-        this.getNumericMultiplier = this.getNumericMultiplier.bind(this);
     }
-    getSignExpression(phase: number) {
-        let bit = this.bits[0];
+    getSignExpression(bits: string[], phase: number) {
+        let bit = bits[0];
         let one = bit === "1" ? "-1" : "+1";
         if (phase > 0) {
             one += " *";
         }
         return one;
     }
-    getExponentExpression(phase: number) {
-        let expressionBits = this.getExponentBits().join('');
+    getExponentExpression(bits: string[], phase: number) {
+        let expressionBits = this.getExponentBits(bits).join('');
         let exponent = parseInt(expressionBits, 2);
         if (phase === 0) {
             if (this.denormalizedZeros) {
@@ -83,10 +65,10 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         //TODO assert or something
         return { __html: "" };
     }
-    getMantissaExpression(phase: number) {
-        let expressionBits = this.getMantissaBits().join('');
+    getMantissaExpression(bits: string[], phase: number) {
+        let expressionBits = this.getMantissaBits(bits).join('');
         if (this.denormalizedOnes) {
-            let mantissaAllZeros = this.getMantissaBits().reduce((pre, cur) => pre && (cur === "0"), true);
+            let mantissaAllZeros = this.getMantissaBits(bits).reduce((pre, cur) => pre && (cur === "0"), true);
             if (mantissaAllZeros) {
                 return "Infinity (since all zeros)";
             }
@@ -102,11 +84,11 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         let value = parseInt(expressionBits, 2) / Math.pow(2, this.props.fractionBits);
         return leadingDigit + value;
     }
-    getExponentBits() {
-        return this.bits.slice(1, 1 + this.props.exponentBits);
+    getExponentBits(bits: string[]) {
+        return bits.slice(1, 1 + this.props.exponentBits);
     }
-    getMantissaBits() {
-        return this.bits.slice(1 + this.props.exponentBits);
+    getMantissaBits(bits: string[]) {
+        return bits.slice(1 + this.props.exponentBits);
     }
     classNameFromBitIndex(index: number) {
         return "bitGroup " + ((Math.floor(index / 4) % 2 === 0) ? "even" : "odd");
@@ -160,27 +142,27 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         for (let i = 0; i < this.props.hexDigits; ++i) {
             hexDigitsTds.push(<td colSpan={4} className={"hexDigitCollapsed " + this.classNameFromBitIndex(4 * i)} key={"hexDigitCollapsed" + i}>{hexValueToUse.substr(2 + i, 1)}</td>);
         }
-        this.bits = [];
+        let bits : string[] = [];
         for (let i = 0; i < this.props.hexDigits; ++i) {
             let binaryString = parseInt(hexValueToUse.substr(2 + i, 1), 16).toString(2);
             while (binaryString.length < 4) {
                 binaryString = "0" + binaryString;
             }
             for (let j = 0; j < 4; ++j) {
-                this.bits.push(binaryString.substr(j, 1));
+                bits.push(binaryString.substr(j, 1));
             }
         }
         let binaryDigitsTds = [];
-        for (let i = 0; i < this.bits.length; ++i) {
-            binaryDigitsTds.push(<td className={"binaryDigit " + this.classNameFromBitIndex(i)} key={"binaryDigit" + i}>{this.bits[i]}</td>);
+        for (let i = 0; i < bits.length; ++i) {
+            binaryDigitsTds.push(<td className={"binaryDigit " + this.classNameFromBitIndex(i)} key={"binaryDigit" + i}>{bits[i]}</td>);
         }
         let binaryBreakdownTds = [];
-        binaryBreakdownTds.push(<td className={"binaryBreakdown sign " + this.classNameFromBitIndex(0)} key="sign">{this.bits[0]}</td>);
-        binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(), 1)}</td>);
-        binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(), 1 + this.props.exponentBits)}</td>);
+        binaryBreakdownTds.push(<td className={"binaryBreakdown sign " + this.classNameFromBitIndex(0)} key="sign">{bits[0]}</td>);
+        binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(bits), 1)}</td>);
+        binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(bits), 1 + this.props.exponentBits)}</td>);
 
-        this.denormalizedZeros = this.getExponentBits().reduce((pre: boolean, cur: string) => (pre && (cur === "0")), true);
-        this.denormalizedOnes = this.getExponentBits().reduce((pre: boolean, cur: string) => pre && (cur === "1"), true);
+        this.denormalizedZeros = this.getExponentBits(bits).reduce((pre: boolean, cur: string) => (pre && (cur === "0")), true);
+        this.denormalizedOnes = this.getExponentBits(bits).reduce((pre: boolean, cur: string) => pre && (cur === "1"), true);
         let flippedDescription = this.props.flipEndianness ? ' (swapped endianness)' : '';
         let floatingValueDisplay = this.props.floatingValue;
         if (this.getNumericMultiplier() !== 1) {
@@ -197,9 +179,9 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                     <tr>{binaryDigitsTds}</tr>
                     <tr>{binaryBreakdownTds}</tr>
                     <tr><td colSpan={3}>sign</td><td colSpan={1 + this.props.exponentBits - 3}>exponent</td><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>mantissa</td></tr>
-                    <tr><td colSpan={3}>{this.getSignExpression(0)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(0)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(0)}</td></tr>
-                    <tr><td colSpan={3}>{this.getSignExpression(1)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(1)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(1)}</td></tr>
-                    <tr><td colSpan={3}>{this.getSignExpression(2)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(2)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(2)}</td></tr>
+                    <tr><td colSpan={3}>{this.getSignExpression(bits, 0)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(bits, 0)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(bits, 0)}</td></tr>
+                    <tr><td colSpan={3}>{this.getSignExpression(bits, 1)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(bits, 1)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(bits, 1)}</td></tr>
+                    <tr><td colSpan={3}>{this.getSignExpression(bits, 2)}</td><td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(bits, 2)} /><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(bits, 2)}</td></tr>
                     <tr><td colSpan={this.props.hexDigits * 4}>{floatingValueDisplay}</td></tr>
                 </tbody>
             </table>
@@ -244,14 +226,6 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
         if (props.marginTop) {
             this.formStyle['marginTop'] = props.marginTop + 'px';
         }
-
-        this.changeHexValue = this.changeHexValue.bind(this);
-        this.changeFloatingValue = this.changeFloatingValue.bind(this);
-        this.changeMultiplier = this.changeMultiplier.bind(this);
-        this.getNumericMultiplier = this.getNumericMultiplier.bind(this);
-        this.doConvert = this.doConvert.bind(this);
-        this.convertToHex = this.convertToHex.bind(this);
-        this.convertToFloating = this.convertToFloating.bind(this);
     }
     changeHexValue(e: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ 'hexValue': e.target.value, 'flash': false });
@@ -269,9 +243,9 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
     }
     doConvert(query: string, mode: ConvertMode) {
         let that = this;
-        fetch('floattohex.cgi?' + query).then(function (response) {
+        fetch(SCRIPT_URI + '?' + query).then(response => {
             return response.text();
-        }).then(function (responseText) {
+        }).then(responseText => {
             let documentElement = that.parseXml(responseText).documentElement;
             if (documentElement === null) {
                 return;
@@ -315,7 +289,7 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
         let multiplierSpan;
         //TODO
         //if (Config.multiplier) {
-        //    multiplierSpan = <span>&nbsp;<label htmlFor={this.props.floatType.toLowerCase() + 'Multiplier'}>Multiplier:</label><input type="text" name={this.props.floatType.toLowerCase() + 'Multiplier'} id={this.props.floatType.toLowerCase() + 'Multiplier'} value={this.state.multiplier} onChange={this.changeMultiplier}/></span>;
+        //    multiplierSpan = <span>&nbsp;<label htmlFor={this.props.floatType.toLowerCase() + 'Multiplier'}>Multiplier:</label><input type="text" name={this.props.floatType.toLowerCase() + 'Multiplier'} id={this.props.floatType.toLowerCase() + 'Multiplier'} value={this.state.multiplier} onChange={e => this.changeMultiplier(e)}/></span>;
         //}
         return (
             <AnimateOnChange
@@ -327,12 +301,12 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
                 <form style={this.formStyle}>
                     <p>
                         <label htmlFor={'hex' + this.props.floatType}>Hex value:</label>
-                        <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={this.changeHexValue} /><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={this.convertToFloating} />
+                        <input type="text" name={'hex' + this.props.floatType} id={'hex' + this.props.floatType} value={this.state.hexValue} onChange={e => this.changeHexValue(e)} /><input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={() => this.convertToFloating()} />
                     </p>
                     <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} multiplier={this.state.multiplier} {...this.props} />
                     <p>
                         <label htmlFor={this.props.floatType.toLowerCase() + 'Hex'}>{this.props.floatType + ' value:'}</label>
-                        <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={this.changeFloatingValue} />{multiplierSpan}<input type="button" value='Convert to hex' onClick={this.convertToHex} />
+                        <input type="text" name={this.props.floatType.toLowerCase() + 'Hex'} id={this.props.floatType.toLowerCase() + 'Hex'} value={this.state.floatingValue} onChange={e => this.changeFloatingValue(e)} />{multiplierSpan}<input type="button" value='Convert to hex' onClick={() => this.convertToHex()} />
                     </p>
                 </form>
             </AnimateOnChange>
@@ -361,27 +335,22 @@ class App extends Component<{}, AppState> {
             }
         }
         this.state = { 'showExplanation': showExplanation, 'flipEndianness': false };
-
-        this.handleExplanationChange = this.handleExplanationChange.bind(this);
-        this.handleEndiannessChange = this.handleEndiannessChange.bind(this);
     }
     handleExplanationChange(event: React.ChangeEvent<HTMLInputElement>) {
-        // a little hacky?
-        this.setState({ 'showExplanation': !this.state.showExplanation });
+        this.setState({ showExplanation: event.target.checked });
     }
     handleEndiannessChange(event: React.ChangeEvent<HTMLInputElement>) {
-        // a little hacky?
-        this.setState({ 'flipEndianness': !this.state.flipEndianness });
+        this.setState({ flipEndianness: event.target.checked });
     }
     render() {
         return (
             <div>
                 <div>
-                    <input type="checkbox" checked={this.state.showExplanation} id="showExplanation" onChange={this.handleExplanationChange} />
+                    <input type="checkbox" checked={this.state.showExplanation} id="showExplanation" onChange={e => this.handleExplanationChange(e)} />
                     &nbsp;
                 <label htmlFor="showExplanation">Show details</label>
                     &nbsp;
-                <input type="checkbox" checked={this.state.flipEndianness} id="flipEndianness" onChange={this.handleEndiannessChange} />
+                <input type="checkbox" checked={this.state.flipEndianness} id="flipEndianness" onChange={e => this.handleEndiannessChange(e)} />
                     &nbsp;
                 <label htmlFor="flipEndianness">Swap endianness</label>
                 </div>
