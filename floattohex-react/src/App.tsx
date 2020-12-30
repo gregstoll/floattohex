@@ -207,7 +207,8 @@ interface HexConverterProps {
     exponentBias: number,
     decimalPrecision: number,
     showExplanation: boolean,
-    flipEndianness: boolean
+    flipEndianness: boolean,
+    uppercaseLetters: boolean
 }
 
 interface HexConverterState {
@@ -279,7 +280,15 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
             });
         });
     }
-    getNumericMultiplier() {
+    displayHex(hexValue: string): string {
+        if (this.props.uppercaseLetters) {
+            // Don't mess with the "0x" at the beginning
+            return hexValue.substr(0,2) + hexValue.substr(2).toUpperCase();
+        } else {
+            return hexValue.substr(0,2) + hexValue.substr(2).toLowerCase();
+        }
+    }
+    getNumericMultiplier(): number {
         let num = parseFloat(this.state.multiplier);
         if (!isNaN(num)) {
             return num;
@@ -309,10 +318,10 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
             >
                 <form style={this.formStyle}>
                     <p>
-                        <label>Hex value: <input type="text" value={this.state.hexValue} onChange={e => this.changeHexValue(e)} /></label>
+                        <label>Hex value: <input type="text" value={this.displayHex(this.state.hexValue)} onChange={e => this.changeHexValue(e)} /></label>
                         <input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={() => this.convertToFloating()} />
                     </p>
-                    <HexFloatBreakdown hexValue={this.state.calculatedHexValue} floatingValue={this.state.calculatedFloatingValue} multiplier={this.state.multiplier} {...this.props} />
+                    <HexFloatBreakdown hexValue={this.displayHex(this.state.calculatedHexValue)} floatingValue={this.state.calculatedFloatingValue} multiplier={this.state.multiplier} {...this.props} />
                     <p>
                         <label>{this.props.floatType + ' value:'} <input type="text" value={this.state.floatingValue} onChange={e => this.changeFloatingValue(e)} /></label>
                         {multiplierSpan}<input type="button" value='Convert to hex' onClick={() => this.convertToHex()} />
@@ -325,7 +334,8 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
 
 interface AppState {
     showExplanation: boolean,
-    flipEndianness: boolean
+    flipEndianness: boolean,
+    uppercaseLetters: boolean
 }
 
 class App extends Component<{}, AppState> {
@@ -333,6 +343,7 @@ class App extends Component<{}, AppState> {
         super(props);
         // parse query hash
         let showExplanation = true;
+        let uppercaseLetters = false;
         if (window.location.search) {
             let hash = window.location.search.substring(1);
             let parts = hash.split('&');
@@ -341,15 +352,21 @@ class App extends Component<{}, AppState> {
                 if (parts[i] === 'showExplanation=0') {
                     showExplanation = false;
                 }
+                else if (parts[i] === 'uppercaseLetters=1') {
+                    uppercaseLetters = true;
+                }
             }
         }
-        this.state = { 'showExplanation': showExplanation, 'flipEndianness': false };
+        this.state = { 'showExplanation': showExplanation, 'flipEndianness': false, 'uppercaseLetters': uppercaseLetters };
     }
     handleExplanationChange(event: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ showExplanation: event.target.checked });
     }
     handleEndiannessChange(event: React.ChangeEvent<HTMLInputElement>) {
         this.setState({ flipEndianness: event.target.checked });
+    }
+    handleUppercaseLettersChange(event: React.ChangeEvent<HTMLInputElement>) {
+        this.setState({ uppercaseLetters: event.target.checked });
     }
     render() {
         return (
@@ -360,9 +377,14 @@ class App extends Component<{}, AppState> {
                     &nbsp;
                     <label><input type="checkbox" checked={this.state.flipEndianness} onChange={e => this.handleEndiannessChange(e)} />
                             &nbsp;Swap endianness</label>
+                    &nbsp;
+                    <label><input type="checkbox" checked={this.state.uppercaseLetters} onChange={e => this.handleUppercaseLettersChange(e)} />
+                            &nbsp;Uppercase letters in hex</label>
                 </div>
-                <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9} showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} />
-                <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17} showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} />
+                <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9}
+                    showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters} />
+                <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17}
+                     showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters} />
             </div>
         );
     }
