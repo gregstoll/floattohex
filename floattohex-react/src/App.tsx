@@ -4,8 +4,8 @@ import AnimateOnChange from 'react-animate-on-change';
 
 require('./style.css')
 
-const SCRIPT_URI = 'floattohex.cgi';
-//const SCRIPT_URI = "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi";
+const SCRIPT_URI = process.env.NODE_ENV === 'development' ? "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi" : "floattohex.cgi";
+
 interface HexFloatBreakdownProps extends HexConverterProps {
     hexValue: string,
     floatingValue: string,
