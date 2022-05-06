@@ -376,7 +376,7 @@ class App extends Component<{}, AppState> {
                             &nbsp;Show details</label>
                     &nbsp;
                     <label><input type="checkbox" checked={this.state.flipEndianness} onChange={e => this.handleEndiannessChange(e)} />
-                            &nbsp;Swap endianness</label>
+                            &nbsp;Swap to use big-endian</label>
                     &nbsp;
                     <label><input type="checkbox" checked={this.state.uppercaseLetters} onChange={e => this.handleUppercaseLettersChange(e)} />
                             &nbsp;Uppercase letters in hex</label>
