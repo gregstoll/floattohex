@@ -105,6 +105,7 @@ def handleHexToDouble(h, swap=False):
 form = cgi.FieldStorage()
 action = form.getfirst('action')
 swap = form.getfirst('swap') == '1'
+print("Access-Control-Allow-Origin: *")
 if (action == 'floattohex'):
     try:
         f = float(form.getfirst('float'))

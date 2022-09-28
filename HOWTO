@@ -10,3 +10,12 @@ npm install --save style-loader less less-loader css-loader - installs .less stu
 
 npm run dev - builds dev mode
 npm run build - builds minified
+
+
+--
+
+to upgrade python version
+
+ make
+
+then copy build/lib<something>/FloatToHex*.so to main directory
