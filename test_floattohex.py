@@ -8,7 +8,7 @@ class Test_FloatToHexParameterized(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        with open('testcases.json', 'r') as testCasesFile:
+        with open('testCases.json', 'r') as testCasesFile:
             cls.testCasesJson = json.load(testCasesFile)
 
     @classmethod
