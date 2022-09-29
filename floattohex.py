@@ -102,35 +102,36 @@ def handleHexToDouble(h, swap=False):
         return
     returnDoubleHex(d, h)
 
-form = cgi.FieldStorage()
-action = form.getfirst('action')
-swap = form.getfirst('swap') == '1'
-print("Access-Control-Allow-Origin: *")
-if (action == 'floattohex'):
-    try:
-        f = float(form.getfirst('float'))
-    except:
-        returnFloatHex(form.getfirst('float'), 'ERROR')
-        sys.exit(0)
-    handleFloatToHex(f, swap)
-elif (action == 'hextofloat'):
-    try:
-        h = str(form.getfirst('hex').replace(' ', ''))
-    except:
-        returnFloatHex('ERROR', form.getfirst('hex'))
-        sys.exit(0)
-    handleHexToFloat(h, swap)
-elif (action == 'doubletohex'):
-    try:
-        d = float(form.getfirst('double'))
-    except:
-        returnDoubleHex(form.getfirst('double'), 'ERROR')
-        sys.exit(0)
-    handleDoubleToHex(d, swap)
-elif (action == 'hextodouble'):
-    try:
-        h = str(form.getfirst('hex').replace(' ', ''))
-    except:
-        returnDoubleHex('ERROR', form.getfirst('hex'))
-        sys.exit(0)
-    handleHexToDouble(h, swap)
+if __name__ == '__main__':
+    form = cgi.FieldStorage()
+    action = form.getfirst('action')
+    swap = form.getfirst('swap') == '1'
+    print("Access-Control-Allow-Origin: *")
+    if (action == 'floattohex'):
+        try:
+            f = float(form.getfirst('float'))
+        except:
+            returnFloatHex(form.getfirst('float'), 'ERROR')
+            sys.exit(0)
+        handleFloatToHex(f, swap)
+    elif (action == 'hextofloat'):
+        try:
+            h = str(form.getfirst('hex').replace(' ', ''))
+        except:
+            returnFloatHex('ERROR', form.getfirst('hex'))
+            sys.exit(0)
+        handleHexToFloat(h, swap)
+    elif (action == 'doubletohex'):
+        try:
+            d = float(form.getfirst('double'))
+        except:
+            returnDoubleHex(form.getfirst('double'), 'ERROR')
+            sys.exit(0)
+        handleDoubleToHex(d, swap)
+    elif (action == 'hextodouble'):
+        try:
+            h = str(form.getfirst('hex').replace(' ', ''))
+        except:
+            returnDoubleHex('ERROR', form.getfirst('hex'))
+            sys.exit(0)
+        handleHexToDouble(h, swap)
