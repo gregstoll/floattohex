@@ -22,8 +22,9 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
     constructor(props: HexFloatBreakdownProps) {
         super(props);
 
-        this.denormalizedZeros = false;
-        this.denormalizedOnes = false;
+        let bits : string[] = this.getBits();
+        this.denormalizedZeros = this.getExponentBits(bits).reduce((pre: boolean, cur: string) => (pre && (cur === "0")), true);
+        this.denormalizedOnes = this.getExponentBits(bits).reduce((pre: boolean, cur: string) => pre && (cur === "1"), true);
     }
     getSignExpression(bits: string[], phase: BreakdownPhase) {
         let bit = bits[0];
@@ -130,22 +131,16 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         }
         return 1;
     }
-    render() {
-        if (this.props.hexValue === '' || this.props.hexValue === 'ERROR'
-            || this.props.floatingValue === '' || this.props.floatingValue === 'ERROR'
-            || this.props.hexValue.length !== 2 + this.props.hexDigits
-            || !this.props.showExplanation) {
-            return <div style={{ 'display': 'none' }} />;
-        }
+    getHexValueToUse(): string {
         let hexValueToUse = this.props.hexValue;
         if (this.props.flipEndianness) {
             hexValueToUse = this.flipHexString(hexValueToUse, this.props.hexDigits);
         }
-        let hexDigitsTds = [];
-        for (let i = 0; i < this.props.hexDigits; ++i) {
-            hexDigitsTds.push(<td colSpan={4} className={"hexDigitCollapsed " + this.classNameFromBitIndex(4 * i)} key={"hexDigitCollapsed" + i}>{hexValueToUse.substr(2 + i, 1)}</td>);
-        }
+        return hexValueToUse;
+    }
+    getBits(): string[] {
         let bits : string[] = [];
+        let hexValueToUse = this.getHexValueToUse();
         for (let i = 0; i < this.props.hexDigits; ++i) {
             let binaryString = parseInt(hexValueToUse.substr(2 + i, 1), 16).toString(2);
             while (binaryString.length < 4) {
@@ -155,6 +150,21 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                 bits.push(binaryString.substr(j, 1));
             }
         }
+        return bits;
+    }
+    render() {
+        if (this.props.hexValue === '' || this.props.hexValue === 'ERROR'
+            || this.props.floatingValue === '' || this.props.floatingValue === 'ERROR'
+            || this.props.hexValue.length !== 2 + this.props.hexDigits
+            || !this.props.showExplanation) {
+            return <div style={{ 'display': 'none' }} />;
+        }
+        let hexValueToUse = this.getHexValueToUse();
+        let hexDigitsTds = [];
+        for (let i = 0; i < this.props.hexDigits; ++i) {
+            hexDigitsTds.push(<td colSpan={4} className={"hexDigitCollapsed " + this.classNameFromBitIndex(4 * i)} key={"hexDigitCollapsed" + i}>{hexValueToUse.substr(2 + i, 1)}</td>);
+        }
+        let bits : string[] = this.getBits();
         let binaryDigitsTds = [];
         for (let i = 0; i < bits.length; ++i) {
             binaryDigitsTds.push(<td className={"binaryDigit " + this.classNameFromBitIndex(i)} key={"binaryDigit" + i}>{bits[i]}</td>);
@@ -164,8 +174,6 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         binaryBreakdownTds.push(<td className="binaryBreakdown exponent" key="exponent" colSpan={this.props.exponentBits}>{this.wrapBitsInClassName(this.getExponentBits(bits), 1)}</td>);
         binaryBreakdownTds.push(<td className="binaryBreakdown fraction" key="fraction" colSpan={this.props.fractionBits}>{this.wrapBitsInClassName(this.getMantissaBits(bits), 1 + this.props.exponentBits)}</td>);
 
-        this.denormalizedZeros = this.getExponentBits(bits).reduce((pre: boolean, cur: string) => (pre && (cur === "0")), true);
-        this.denormalizedOnes = this.getExponentBits(bits).reduce((pre: boolean, cur: string) => pre && (cur === "1"), true);
         let flippedDescription = this.props.flipEndianness ? ' (swapped endianness)' : '';
         let floatingValueDisplay = this.props.floatingValue;
         if (this.getNumericMultiplier() !== 1) {
