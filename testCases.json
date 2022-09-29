@@ -1,0 +1,49 @@
+[
+    {
+        "action": "floatToHex",
+        "float": 4.5,
+        "hex": "0x40900000"
+    },
+    {
+        "action": "floatToHex",
+        "float": 0.0,
+        "hex": "0x00000000"
+    },
+    {
+        "action": "floatToHex",
+        "float": -0.0,
+        "hex": "0x80000000"
+    },
+    {
+        "action": "floatToHex",
+        "float": -4.5,
+        "hex": "0xc0900000"
+    },
+    {
+        "action": "floatToHex",
+        "float": "NaN",
+        "hex": "0x7fc00000",
+        "note": "there are multiple possibilities for floating point NaNs, this is the one we happen to return"
+    },
+    {
+        "action": "floatToHex",
+        "float": "Infinity",
+        "hex": "0x7f800000"
+    },
+    {
+        "action": "floatToHex",
+        "float": "-Infinity",
+        "hex": "0xff800000"
+    },
+    {
+        "action": "floatToHex",
+        "float": 1.401298464324817e-45,
+        "hex": "0x00000001"
+    },
+    {
+        "action": "floatToHex",
+        "float": -1.401298464324817e-45,
+        "hex": "0x80000001"
+    }
+
+]
