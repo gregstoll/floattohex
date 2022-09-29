@@ -198,14 +198,17 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
     }
 }
 
-interface HexConverterProps {
-    marginTop?: number,
+interface FloatingPointParams {
     floatType: string,
     hexDigits: number,
     exponentBits: number,
     fractionBits: number,
     exponentBias: number,
-    decimalPrecision: number,
+    decimalPrecision: number
+}
+
+interface HexConverterProps extends FloatingPointParams {
+    marginTop?: number,
     showExplanation: boolean,
     flipEndianness: boolean,
     uppercaseLetters: boolean
@@ -338,6 +341,25 @@ interface AppState {
     uppercaseLetters: boolean
 }
 
+const FLOAT_PARAMS : FloatingPointParams = {
+    floatType: "Float",
+    hexDigits: 8,
+    exponentBits: 8,
+    fractionBits: 23,
+    exponentBias: 127,
+    decimalPrecision: 9
+};
+
+const DOUBLE_PARAMS : FloatingPointParams = {
+    floatType: "Double",
+    hexDigits: 16,
+    exponentBits: 11,
+    fractionBits: 52,
+    exponentBias: 1023,
+    decimalPrecision: 17
+}
+
+
 class App extends Component<{}, AppState> {
     constructor(props: {}) {
         super(props);
@@ -381,10 +403,12 @@ class App extends Component<{}, AppState> {
                     <label><input type="checkbox" checked={this.state.uppercaseLetters} onChange={e => this.handleUppercaseLettersChange(e)} />
                             &nbsp;Uppercase letters in hex</label>
                 </div>
-                <HexConverter floatType="Float" hexDigits={8} exponentBits={8} fractionBits={23} exponentBias={127} decimalPrecision={9}
-                    showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters} />
-                <HexConverter marginTop={50} floatType="Double" hexDigits={16} exponentBits={11} fractionBits={52} exponentBias={1023} decimalPrecision={17}
-                     showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters} />
+                <HexConverter
+                    showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
+                    {...FLOAT_PARAMS} />
+                <HexConverter marginTop={50}
+                    showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
+                    {...DOUBLE_PARAMS} />
             </div>
         );
     }
