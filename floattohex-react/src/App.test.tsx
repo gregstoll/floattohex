@@ -36,10 +36,37 @@ test.each([["10000000", "-1"],
             expect(breakdown.getSignExpression(hexValue.split(""), LocalApp.BreakdownPhase.FLOAT_VALUES)).toContain(expected);
            });
 
-test.each([["0x00000000", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
-           ["0xc0900000", "129", "2^(129 - 127) *", "4.00000000 *"]])
+test.each([
+  ["0x00000000", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
+  ["0x80000000", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
+  ["0x40900000", "129", "2^(129 - 127) *", "4.00000000 *"],
+  ["0xc0900000", "129", "2^(129 - 127) *", "4.00000000 *"],
+  ["0x7fc00000", "255 <b>special</b>", "", ""],
+  ["0x7f800000", "255 <b>special</b>", "", ""],
+  ["0xff800000", "255 <b>special</b>", "", ""],
+  ["0x00000001", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
+  ["0x80000001", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
+])
            ('getExponentExpression float %s', (hexValue: string, expectedRawBits: string, expectedIntermediatedValues: string, expectedFloatValues: string) => {
             let breakdown = getHexFloatBreakdown(FloatOrDouble.FLOAT, hexValue, "0");
+            expect(breakdown.getExponentExpression(breakdown.getBits(), LocalApp.BreakdownPhase.RAW_BITS)).toStrictEqual({__html: expectedRawBits});
+            expect(breakdown.getExponentExpression(breakdown.getBits(), LocalApp.BreakdownPhase.INTERMEDIATE)).toStrictEqual({__html: expectedIntermediatedValues});
+            expect(breakdown.getExponentExpression(breakdown.getBits(), LocalApp.BreakdownPhase.FLOAT_VALUES)).toStrictEqual({__html: expectedFloatValues});
+           });
+
+test.each([
+  ["0x0000000000000000", "0 <b>subnormal</b>", "2^-1022 *", "2.2250738585072014e-308 *"],
+  ["0x8000000000000000", "0 <b>subnormal</b>", "2^-1022 *", "2.2250738585072014e-308 *"],
+  ["0x4012000000000000", "1025", "2^(1025 - 1023) *", "4.0000000000000000 *"],
+  ["0xc012000000000000", "1025", "2^(1025 - 1023) *", "4.0000000000000000 *"],
+  ["0x7ff8000000000000", "2047 <b>special</b>", "", ""],
+  ["0x7ff0000000000000", "2047 <b>special</b>", "", ""],
+  ["0xfff0000000000000", "2047 <b>special</b>", "", ""],
+  ["0x0000000000000001", "0 <b>subnormal</b>", "2^-1022 *", "2.2250738585072014e-308 *"],
+  ["0x8000000000000001", "0 <b>subnormal</b>", "2^-1022 *", "2.2250738585072014e-308 *"],
+])
+           ('getExponentExpression double %s', (hexValue: string, expectedRawBits: string, expectedIntermediatedValues: string, expectedFloatValues: string) => {
+            let breakdown = getHexFloatBreakdown(FloatOrDouble.DOUBLE, hexValue, "0");
             expect(breakdown.getExponentExpression(breakdown.getBits(), LocalApp.BreakdownPhase.RAW_BITS)).toStrictEqual({__html: expectedRawBits});
             expect(breakdown.getExponentExpression(breakdown.getBits(), LocalApp.BreakdownPhase.INTERMEDIATE)).toStrictEqual({__html: expectedIntermediatedValues});
             expect(breakdown.getExponentExpression(breakdown.getBits(), LocalApp.BreakdownPhase.FLOAT_VALUES)).toStrictEqual({__html: expectedFloatValues});
