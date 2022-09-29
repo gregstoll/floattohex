@@ -34,13 +34,33 @@ class Test_FloatToHexParameterized(unittest.TestCase):
                         self.assertTrue(math.isnan(h), f"f={f}, h={h}")
                     else:
                         self.assertEqual(f, h)
-   
+
+    def test_fileDoubleToHex(self):
+        for testCase in self.testCasesJson:
+            if testCase["action"] == "doubleToHex":
+                with self.subTest(self.getTestName(testCase)):
+                    self.assertEqual(int(testCase["hex"], 16), FloatToHex.doubletohex(float(testCase["double"]), False))
+
+    def test_fileHexToDouble(self):
+        for testCase in self.testCasesJson:
+            if testCase["action"] == "doubleToHex":
+                with self.subTest(self.getTestName(testCase)):
+                    d = float(testCase["double"])
+                    h = FloatToHex.hextodouble(int(testCase["hex"], 16), False)
+                    if math.isnan(d):
+                        self.assertTrue(math.isnan(h), f"d={d}, h={h}")
+                    else:
+                        self.assertEqual(d, h)
+
+  
     def test_allTestCasesValid(self):
         for testCase in self.testCasesJson:
-            self.assertIn(testCase["action"], ["floatToHex"])
+            self.assertIn(testCase["action"], ["floatToHex", "doubleToHex"])
             self.assertIn("hex", testCase.keys())
             if testCase["action"] == "floatToHex":
                 self.assertIn("float", testCase.keys())
+            elif testCase["action"] == "doubleToHex":
+                self.assertIn("double", testCase.keys())
     
 
 if __name__ == '__main__':

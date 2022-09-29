@@ -44,6 +44,52 @@
         "action": "floatToHex",
         "float": -1.401298464324817e-45,
         "hex": "0x80000001"
+    },
+    {
+        "action": "doubleToHex",
+        "double": 4.5,
+        "hex": "0x4012000000000000"
+    },
+    {
+        "action": "doubleToHex",
+        "double": 0.0,
+        "hex": "0x0000000000000000"
+    },
+    {
+        "action": "doubleToHex",
+        "double": -0.0,
+        "hex": "0x8000000000000000"
+    },
+    {
+        "action": "doubleToHex",
+        "double": -4.5,
+        "hex": "0xc012000000000000"
+    },
+    {
+        "action": "doubleToHex",
+        "double": "NaN",
+        "hex": "0x7ff8000000000000",
+        "note": "there are multiple possibilities for doubleing point NaNs, this is the one we happen to return"
+    },
+    {
+        "action": "doubleToHex",
+        "double": "Infinity",
+        "hex": "0x7ff0000000000000"
+    },
+    {
+        "action": "doubleToHex",
+        "double": "-Infinity",
+        "hex": "0xfff0000000000000"
+    },
+    {
+        "action": "doubleToHex",
+        "double": 5e-324,
+        "hex": "0x0000000000000001"
+    },
+    {
+        "action": "doubleToHex",
+        "double": -5e-324,
+        "hex": "0x8000000000000001"
     }
 
 ]
