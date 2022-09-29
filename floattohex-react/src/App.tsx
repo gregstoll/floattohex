@@ -1,23 +1,22 @@
 import React, { Component } from 'react';
-//import { NICE, SUPER_NICE } from './colors';
 import AnimateOnChange from 'react-animate-on-change';
 
 require('./style.css')
 
 const SCRIPT_URI = process.env.NODE_ENV === 'development' ? "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi" : "floattohex.cgi";
 
-interface HexFloatBreakdownProps extends HexConverterProps {
+export interface HexFloatBreakdownProps extends HexConverterProps {
     hexValue: string,
     floatingValue: string,
     multiplier: string
 }
 
-enum BreakdownPhase {
+export enum BreakdownPhase {
     RAW_BITS,
     INTERMEDIATE,
     FLOAT_VALUES
 }
-class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
+export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
     denormalizedZeros: boolean;
     denormalizedOnes: boolean;
     constructor(props: HexFloatBreakdownProps) {
@@ -198,7 +197,7 @@ class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
     }
 }
 
-interface FloatingPointParams {
+export interface FloatingPointParams {
     floatType: string,
     hexDigits: number,
     exponentBits: number,
@@ -207,7 +206,7 @@ interface FloatingPointParams {
     decimalPrecision: number
 }
 
-interface HexConverterProps extends FloatingPointParams {
+export interface HexConverterProps extends FloatingPointParams {
     marginTop?: number,
     showExplanation: boolean,
     flipEndianness: boolean,
@@ -341,7 +340,7 @@ interface AppState {
     uppercaseLetters: boolean
 }
 
-const FLOAT_PARAMS : FloatingPointParams = {
+export const FLOAT_PARAMS : FloatingPointParams = {
     floatType: "Float",
     hexDigits: 8,
     exponentBits: 8,
@@ -350,7 +349,7 @@ const FLOAT_PARAMS : FloatingPointParams = {
     decimalPrecision: 9
 };
 
-const DOUBLE_PARAMS : FloatingPointParams = {
+export const DOUBLE_PARAMS : FloatingPointParams = {
     floatType: "Double",
     hexDigits: 16,
     exponentBits: 11,
