@@ -61,7 +61,7 @@ test('flipHexBreakdown', () => {
 });
 
 test.each([["0x12ab34CD", false, "0x12ab34cd"],
-           ["0x12ab34CD", true, "0x12AB34CD"]])('HexConverter.displayHex %s', (hexValue: string, uppercase: boolean, expected: string) => {
+           ["0x12ab34CD", true, "0x12AB34CD"]])('HexConverter.displayHex %s uppercase:%s', (hexValue: string, uppercase: boolean, expected: string) => {
             let props : LocalApp.HexConverterProps = {
               uppercaseLetters: uppercase,
               showExplanation: true,
@@ -71,6 +71,20 @@ test.each([["0x12ab34CD", false, "0x12ab34cd"],
             let hexConverter = new LocalApp.HexConverter(props);
             expect(hexConverter.displayHex(hexValue)).toBe(expected);
            });
+
+test.each([
+  ["0x00000000", false, "00000000000000000000000000000000"],
+  ["0x00000000", true, "00000000000000000000000000000000"],
+  ["0xffffffff", false, "11111111111111111111111111111111"],
+  ["0xffffffff", true, "11111111111111111111111111111111"],
+  ["0x12AB34CD", false, "00010010101010110011010011001101"],
+  ["0x12AB34CD", true, "11001101001101001010101100010010"],
+])('getBits %s flip:%s', (hexValue: string, flipEndianness: boolean, expectedBits: string) => {
+    let props = getHexFloatBreakdownProps(FloatOrDouble.FLOAT, hexValue, "0");
+    props.flipEndianness = flipEndianness;
+    let breakdown = new LocalApp.HexFloatBreakdown(props);
+    expect(breakdown.getBits().join("")).toBe(expectedBits);
+  });
 
 test.each([["10000000", "-1"],
            ["00000001", "+1"]])('getSignExpression %s', (hexValue: string, expected: string) => {

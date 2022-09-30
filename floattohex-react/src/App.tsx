@@ -142,12 +142,12 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         let bits : string[] = [];
         let hexValueToUse = this.getHexValueToUse();
         for (let i = 0; i < this.props.hexDigits; ++i) {
-            let binaryString = parseInt(hexValueToUse.substr(2 + i, 1), 16).toString(2);
+            let binaryString = parseInt(hexValueToUse.substring(2 + i, 2 + i + 1), 16).toString(2);
             while (binaryString.length < 4) {
                 binaryString = "0" + binaryString;
             }
             for (let j = 0; j < 4; ++j) {
-                bits.push(binaryString.substr(j, 1));
+                bits.push(binaryString.substring(j, j + 1));
             }
         }
         return bits;
@@ -293,9 +293,9 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
     displayHex(hexValue: string): string {
         if (this.props.uppercaseLetters) {
             // Don't mess with the "0x" at the beginning
-            return hexValue.substr(0,2) + hexValue.substr(2).toUpperCase();
+            return hexValue.substring(0,2) + hexValue.substring(2).toUpperCase();
         } else {
-            return hexValue.substr(0,2) + hexValue.substr(2).toLowerCase();
+            return hexValue.substring(0,2) + hexValue.substring(2).toLowerCase();
         }
     }
     getNumericMultiplier(): number {
