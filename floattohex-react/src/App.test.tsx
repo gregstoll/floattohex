@@ -1,5 +1,6 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import App, * as LocalApp from './App';
 import { createRoot } from 'react-dom/client';
 
@@ -14,9 +15,9 @@ enum FloatOrDouble {
   FLOAT,
   DOUBLE
 }
-function getHexFloatBreakdown(floatOrDouble: FloatOrDouble, hexValue: string, floatingValue: string) : LocalApp.HexFloatBreakdown {
+function getHexFloatBreakdownProps(floatOrDouble: FloatOrDouble, hexValue: string, floatingValue: string) : LocalApp.HexFloatBreakdownProps {
   let floatingPointProps = floatOrDouble == FloatOrDouble.FLOAT ? LocalApp.FLOAT_PARAMS : LocalApp.DOUBLE_PARAMS;
-  let props : LocalApp.HexFloatBreakdownProps = {
+  let props: LocalApp.HexFloatBreakdownProps = {
     multiplier: "1",
     flipEndianness: false,
     showExplanation: true,
@@ -25,8 +26,34 @@ function getHexFloatBreakdown(floatOrDouble: FloatOrDouble, hexValue: string, fl
     uppercaseLetters: false,
     ...floatingPointProps
   };
+  return props;
+}
+function getHexFloatBreakdown(floatOrDouble: FloatOrDouble, hexValue: string, floatingValue: string) : LocalApp.HexFloatBreakdown {
+  let props: LocalApp.HexFloatBreakdownProps = getHexFloatBreakdownProps(floatOrDouble, hexValue, floatingValue);
   return new LocalApp.HexFloatBreakdown(props);
 }
+
+test('switching from non-denormalized to denormalized zeros', () => {
+  let props = getHexFloatBreakdownProps(FloatOrDouble.FLOAT, "0x40900000", "0");
+  const {rerender} = render(<LocalApp.HexFloatBreakdown {...props}/>);
+  // re-render the same component with different props
+  props.hexValue = "0x00000000";
+  rerender(<LocalApp.HexFloatBreakdown {...props}/>);
+  let exponentTableLabel = screen.getByText("exponent");
+  let exponentFirstEntryTd = exponentTableLabel.parentElement!.nextSibling?.childNodes.item(1)!;
+  expect((exponentFirstEntryTd as HTMLElement).innerHTML).toBe("0 <b>subnormal</b>");
+});
+
+test('switching from non-denormalized to denormalized ones', () => {
+  let props = getHexFloatBreakdownProps(FloatOrDouble.FLOAT, "0x40900000", "0");
+  const {rerender} = render(<LocalApp.HexFloatBreakdown {...props}/>);
+  // re-render the same component with different props
+  props.hexValue = "0x7ff00000";
+  rerender(<LocalApp.HexFloatBreakdown {...props}/>);
+  let exponentTableLabel = screen.getByText("exponent");
+  let exponentFirstEntryTd = exponentTableLabel.parentElement!.nextSibling?.childNodes.item(1)!;
+  expect((exponentFirstEntryTd as HTMLElement).innerHTML).toBe("255 <b>special</b>");
+});
 
 test.each([["10000000", "-1"],
            ["00000001", "+1"]])('getSignExpression %s', (hexValue: string, expected: string) => {

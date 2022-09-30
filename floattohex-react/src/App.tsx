@@ -17,16 +17,18 @@ export enum BreakdownPhase {
     FLOAT_VALUES
 }
 export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
-    denormalizedZeros: boolean;
-    denormalizedOnes: boolean;
     constructor(props: HexFloatBreakdownProps) {
         super(props);
 
         let bits : string[] = this.getBits();
-        this.denormalizedZeros = this.getExponentBits(bits).reduce((pre: boolean, cur: string) => (pre && (cur === "0")), true);
-        this.denormalizedOnes = this.getExponentBits(bits).reduce((pre: boolean, cur: string) => pre && (cur === "1"), true);
     }
-    getSignExpression(bits: string[], phase: BreakdownPhase) {
+    getIsDenormalizedZeros(bits: string[]) : boolean {
+        return this.getExponentBits(bits).reduce((pre: boolean, cur: string) => (pre && (cur === "0")), true);
+    }
+    getIsDenormalizedOnes(bits: string[]) : boolean {
+        return this.getExponentBits(bits).reduce((pre: boolean, cur: string) => pre && (cur === "1"), true);
+    }
+    getSignExpression(bits: string[], phase: BreakdownPhase) : string {
         let bit = bits[0];
         let one = bit === "1" ? "-1" : "+1";
         if (phase !== BreakdownPhase.RAW_BITS) {
@@ -37,31 +39,33 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
     getExponentExpression(bits: string[], phase: BreakdownPhase) {
         let expressionBits = this.getExponentBits(bits).join('');
         let exponent = parseInt(expressionBits, 2);
+        const denormalizedZeros = this.getIsDenormalizedZeros(bits);
+        const denormalizedOnes = this.getIsDenormalizedOnes(bits);
         switch (phase) {
             case BreakdownPhase.RAW_BITS: {
-                if (this.denormalizedZeros) {
+                if (denormalizedZeros) {
                     return { __html: exponent + ' <b>subnormal</b>' };
                 }
-                else if (this.denormalizedOnes) {
+                else if (denormalizedOnes) {
                     return { __html: exponent + ' <b>special</b>' };
                 }
                 return { __html: exponent + "" };
             }
             case BreakdownPhase.INTERMEDIATE: {
-                if (this.denormalizedZeros) {
+                if (denormalizedZeros) {
                     return { __html: "2^" + (1 - this.props.exponentBias) + " *" };
                 }
-                else if (this.denormalizedOnes) {
+                else if (denormalizedOnes) {
                     return { __html: "" };
                 }
                 return { __html: "2^(" + exponent + " - " + this.props.exponentBias + ") *" };
             }
             case BreakdownPhase.FLOAT_VALUES: {
-                if (this.denormalizedOnes) {
+                if (denormalizedOnes) {
                     return { __html: "" };
                 }
                 let power = exponent - this.props.exponentBias;
-                if (this.denormalizedZeros) {
+                if (denormalizedZeros) {
                     power = 1 - this.props.exponentBias;
                 }
                 //return Math.round10(Math.pow(2, power), -1 * this.props.decimalPrecision) + " *";
@@ -71,7 +75,7 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
     }
     getMantissaExpression(bits: string[], phase: BreakdownPhase) {
         let expressionBits = this.getMantissaBits(bits).join('');
-        if (this.denormalizedOnes) {
+        if (this.getIsDenormalizedOnes(bits)) {
             let mantissaAllZeros = this.getMantissaBits(bits).reduce((pre, cur) => pre && (cur === "0"), true);
             if (mantissaAllZeros) {
                 return "Infinity (since all zeros)";
@@ -80,7 +84,7 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                 return "NaN (since non-zero)";
             }
         }
-        let leadingDigit = this.denormalizedZeros ? 0 : 1;
+        let leadingDigit = this.getIsDenormalizedZeros(bits) ? 0 : 1;
         if (phase === BreakdownPhase.RAW_BITS) {
             return leadingDigit + "." + expressionBits + " (binary)";
         }

@@ -4,13 +4,17 @@
   "private": true,
   "homepage": "/~gregstoll/floattohex/",
   "dependencies": {
+    "react": "^18.2.0",
+    "react-animate-on-change": "^2.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
     "@types/jest": "29.1.0",
     "@types/node": "18.7.23",
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
-    "react": "^18.2.0",
-    "react-animate-on-change": "^2.2.0",
-    "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1",
     "typescript": "^4.8.4"
   },
@@ -24,12 +28,12 @@
     "extends": "react-app"
   },
   "optimization": {
-   "scripts": true,
-   "styles": {
+    "scripts": true,
+    "styles": {
       "minify": false,
       "inlineCritical": false
-   },
-   "fonts": true
+    },
+    "fonts": true
   },
   "browserslist": {
     "production": [
