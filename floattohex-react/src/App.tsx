@@ -142,12 +142,12 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         let bits : string[] = [];
         let hexValueToUse = this.getHexValueToUse();
         for (let i = 0; i < this.props.hexDigits; ++i) {
-            let binaryString = parseInt(hexValueToUse.substring(2 + i, 2 + i + 1), 16).toString(2);
+            let binaryString = parseInt(hexValueToUse[2+i], 16).toString(2);
             while (binaryString.length < 4) {
                 binaryString = "0" + binaryString;
             }
             for (let j = 0; j < 4; ++j) {
-                bits.push(binaryString.substring(j, j + 1));
+                bits.push(binaryString[j]);
             }
         }
         return bits;
@@ -162,7 +162,7 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         let hexValueToUse = this.getHexValueToUse();
         let hexDigitsTds = [];
         for (let i = 0; i < this.props.hexDigits; ++i) {
-            hexDigitsTds.push(<td colSpan={4} className={"hexDigitCollapsed " + this.classNameFromBitIndex(4 * i)} key={"hexDigitCollapsed" + i}>{hexValueToUse.substr(2 + i, 1)}</td>);
+            hexDigitsTds.push(<td colSpan={4} className={"hexDigitCollapsed " + this.classNameFromBitIndex(4 * i)} key={"hexDigitCollapsed" + i}>{hexValueToUse[2 + i]}</td>);
         }
         let bits : string[] = this.getBits();
         let binaryDigitsTds = [];
