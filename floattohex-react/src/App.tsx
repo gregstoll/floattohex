@@ -117,9 +117,10 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
         return spans;
     }
     flipHexString(hexValue: string, hexDigits: number) {
-        let h = hexValue.substr(0, 2);
+        let h = hexValue.substring(0, 2);
         for (let i = 0; i < hexDigits; ++i) {
-            h += hexValue.substr(2 + (hexDigits - 1 - i) * 2, 2);
+            let start = 2 + (hexDigits - 1 - i) * 2;
+            h += hexValue.substring(start, start + 2);
         }
         return h;
     }

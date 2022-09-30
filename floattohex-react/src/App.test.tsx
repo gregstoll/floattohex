@@ -55,6 +55,11 @@ test('switching from non-denormalized to denormalized ones', () => {
   expect((exponentFirstEntryTd as HTMLElement).innerHTML).toBe("255 <b>special</b>");
 });
 
+test('flipHexBreakdown', () => {
+  let breakdown = getHexFloatBreakdown(FloatOrDouble.FLOAT, "0x00000000", "0");
+  expect(breakdown.flipHexString("0x1234ABCD", 8)).toBe("0xCDAB3412");
+});
+
 test.each([["10000000", "-1"],
            ["00000001", "+1"]])('getSignExpression %s', (hexValue: string, expected: string) => {
             let breakdown = getHexFloatBreakdown(FloatOrDouble.FLOAT, hexValue, "0");
