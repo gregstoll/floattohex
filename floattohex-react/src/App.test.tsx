@@ -55,6 +55,28 @@ test('switching from non-denormalized to denormalized ones', () => {
   expect((exponentFirstEntryTd as HTMLElement).innerHTML).toBe("255 <b>special</b>");
 });
 
+test('switching from denormalized zeros to non-denormalized', () => {
+  let props = getHexFloatBreakdownProps(FloatOrDouble.FLOAT, "0x00000000", "0");
+  const {rerender} = render(<LocalApp.HexFloatBreakdown {...props}/>);
+  // re-render the same component with different props
+  props.hexValue = "0x40900000";
+  rerender(<LocalApp.HexFloatBreakdown {...props}/>);
+  let exponentTableLabel = screen.getByText("exponent");
+  let exponentFirstEntryTd = exponentTableLabel.parentElement!.nextSibling?.childNodes.item(1)!;
+  expect((exponentFirstEntryTd as HTMLElement).innerHTML).toBe("129");
+});
+
+test('switching from denormalized ones to non-denormalized', () => {
+  let props = getHexFloatBreakdownProps(FloatOrDouble.FLOAT, "0x7ff00000", "0");
+  const {rerender} = render(<LocalApp.HexFloatBreakdown {...props}/>);
+  // re-render the same component with different props
+  props.hexValue = "0x40900000";
+  rerender(<LocalApp.HexFloatBreakdown {...props}/>);
+  let exponentTableLabel = screen.getByText("exponent");
+  let exponentFirstEntryTd = exponentTableLabel.parentElement!.nextSibling?.childNodes.item(1)!;
+  expect((exponentFirstEntryTd as HTMLElement).innerHTML).toBe("129");
+});
+
 test('flipHexBreakdown', () => {
   let breakdown = getHexFloatBreakdown(FloatOrDouble.FLOAT, "0x00000000", "0");
   expect(breakdown.flipHexString("0x1234ABCD", 8)).toBe("0xCDAB3412");
