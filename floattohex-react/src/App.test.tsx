@@ -60,6 +60,18 @@ test('flipHexBreakdown', () => {
   expect(breakdown.flipHexString("0x1234ABCD", 8)).toBe("0xCDAB3412");
 });
 
+test.each([["0x12ab34CD", false, "0x12ab34cd"],
+           ["0x12ab34CD", true, "0x12AB34CD"]])('HexConverter.displayHex %s', (hexValue: string, uppercase: boolean, expected: string) => {
+            let props : LocalApp.HexConverterProps = {
+              uppercaseLetters: uppercase,
+              showExplanation: true,
+              flipEndianness: false,
+              ...LocalApp.FLOAT_PARAMS
+            }
+            let hexConverter = new LocalApp.HexConverter(props);
+            expect(hexConverter.displayHex(hexValue)).toBe(expected);
+           });
+
 test.each([["10000000", "-1"],
            ["00000001", "+1"]])('getSignExpression %s', (hexValue: string, expected: string) => {
             let breakdown = getHexFloatBreakdown(FloatOrDouble.FLOAT, hexValue, "0");

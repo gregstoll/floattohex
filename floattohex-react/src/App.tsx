@@ -235,7 +235,7 @@ enum ConvertMode {
     FLOATING_TO_HEX
 };
 
-class HexConverter extends Component<HexConverterProps, HexConverterState> {
+export class HexConverter extends Component<HexConverterProps, HexConverterState> {
     formStyle: React.CSSProperties;
     constructor(props: HexConverterProps) {
         super(props);
@@ -274,7 +274,7 @@ class HexConverter extends Component<HexConverterProps, HexConverterState> {
             let hexValue: string = hexElem.childNodes[0].nodeValue || "";
             let floatingElem: Element = documentElement.getElementsByTagName(that.props.floatType.toLowerCase())[0];
             while (hexValue.length < that.props.hexDigits + 2) {
-                hexValue = hexValue.substr(0, 2) + "0" + hexValue.substr(2);
+                hexValue = hexValue.substring(0, 2) + "0" + hexValue.substring(2);
             }
             let floatingValue : string = floatingElem.childNodes[0].nodeValue || "";
             if (mode === ConvertMode.FLOATING_TO_HEX) {
