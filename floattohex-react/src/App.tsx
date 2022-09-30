@@ -17,11 +17,6 @@ export enum BreakdownPhase {
     FLOAT_VALUES
 }
 export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
-    constructor(props: HexFloatBreakdownProps) {
-        super(props);
-
-        let bits : string[] = this.getBits();
-    }
     getIsDenormalizedZeros(bits: string[]) : boolean {
         return this.getExponentBits(bits).reduce((pre: boolean, cur: string) => (pre && (cur === "0")), true);
     }
