@@ -13,6 +13,13 @@
 
 #include "Python.h"
 
+/*#if __STDCPP_FLOAT16_T__ != 1
+    #error "16-bit float type required"
+#endif
+
+#if __STDCPP_BFLOAT16_T__ != 1
+    #error "16-bit bfloat type required"
+#endif*/
 
 struct module_state {
     PyObject *error;
@@ -27,7 +34,7 @@ static struct module_state _state;
 
 void swapFloat(float* f) {
     char* fBytes = (char*)f;
-    for (int i = 0; i < sizeof(float)/2; ++i) {
+    for (size_t i = 0; i < sizeof(float)/2; ++i) {
         int oppositeI = sizeof(float) - 1 - i;
         char temp = fBytes[i];
         fBytes[i] = fBytes[oppositeI];
@@ -37,7 +44,7 @@ void swapFloat(float* f) {
 
 void swapDouble(double* d) {
     char* dBytes = (char*)d;
-    for (int i = 0; i < sizeof(double)/2; ++i) {
+    for (size_t i = 0; i < sizeof(double)/2; ++i) {
         int oppositeI = sizeof(double) - 1 - i;
         char temp = dBytes[i];
         dBytes[i] = dBytes[oppositeI];
