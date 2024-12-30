@@ -1,0 +1,4 @@
+- move XML logic down to lib
+- add one test for lib
+- add more tests?
+- make cgi script call this
