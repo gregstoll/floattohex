@@ -25,7 +25,8 @@ impl FloatHexResult {
 </values>",
             float_key = self.float_key,
             float_value = self.float_value,
-            hex_value = self.hex_value
+            // the 10 here is for the 8 hex digits plus 2 for "0x"
+            hex_value = format!("{:#010x}", self.hex_value.parse::<u32>().unwrap())
         )
     }
 }
