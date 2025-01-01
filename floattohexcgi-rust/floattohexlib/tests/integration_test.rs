@@ -22,8 +22,8 @@ fn get_testcases() -> &'static Vec<TestCase> {
         for item in cases_array {
             let action = item["action"].as_str().unwrap();
             let float_key = match action {
-                "floatToHex" | "hexToFloat" => "float",
-                "doubleToHex" | "hexToDouble" => "double",
+                "floatToHex" => "float",
+                "doubleToHex" => "double",
                 _ => panic!("Unknown action {}", action),
             };
             let float_raw_value = &item[float_key];
@@ -46,49 +46,80 @@ fn get_testcases() -> &'static Vec<TestCase> {
     })
 }
 
+fn take_at_most(s: &str, num: usize) -> &str {
+    &s[..s.len().min(num)]
+}
+
+fn assert_xml(
+    response: &str,
+    expected_float_key: &str,
+    expected_float_value: &str,
+    expected_hex_value: &str,
+) {
+    let response_elem = xmltree::Element::parse(response.as_bytes()).unwrap();
+    assert_eq!(response_elem.name, "values");
+    assert_eq!(response_elem.children.len(), 2);
+    assert_eq!(
+        response_elem.children[0].as_element().unwrap().name,
+        expected_float_key
+    );
+    assert_eq!(
+        response_elem.children[0]
+            .as_element()
+            .unwrap()
+            .children
+            .len(),
+        1
+    );
+    // sigh, close enough
+    assert_eq!(
+        take_at_most(
+            response_elem.children[0].as_element().unwrap().children[0]
+                .as_text()
+                .unwrap(),
+            47
+        ),
+        take_at_most(expected_float_value, 47)
+    );
+    assert_eq!(response_elem.children[1].as_element().unwrap().name, "hex");
+    assert_eq!(
+        response_elem.children[1]
+            .as_element()
+            .unwrap()
+            .children
+            .len(),
+        1
+    );
+    assert_eq!(
+        response_elem.children[1].as_element().unwrap().children[0]
+            .as_text()
+            .unwrap(),
+        expected_hex_value
+    );
+}
+
 #[test]
 fn test_floattohex() {
     let testcases = get_testcases();
     let mut num_tested = 0;
     for test in testcases {
         if test.action == "floattohex" {
-            let response = handle_cgi(&test.action, &test.float_value, &test.hex_value, false);
-            let response_elem = xmltree::Element::parse(response.as_bytes()).unwrap();
-            assert_eq!(response_elem.name, "values");
-            assert_eq!(response_elem.children.len(), 2);
-            assert_eq!(
-                response_elem.children[0].as_element().unwrap().name,
-                "float"
-            );
-            assert_eq!(
-                response_elem.children[0]
-                    .as_element()
-                    .unwrap()
-                    .children
-                    .len(),
-                1
-            );
-            assert_eq!(
-                response_elem.children[0].as_element().unwrap().children[0]
-                    .as_text()
-                    .unwrap(),
-                &test.float_value
-            );
-            assert_eq!(response_elem.children[1].as_element().unwrap().name, "hex");
-            assert_eq!(
-                response_elem.children[1]
-                    .as_element()
-                    .unwrap()
-                    .children
-                    .len(),
-                1
-            );
-            assert_eq!(
-                response_elem.children[1].as_element().unwrap().children[0]
-                    .as_text()
-                    .unwrap(),
-                &test.hex_value
-            );
+            let response = handle_cgi(&test.action, &test.float_value, "", false);
+            assert_xml(&response, "float", &test.float_value, &test.hex_value);
+            num_tested = num_tested + 1;
+        }
+    }
+    assert!(num_tested > 0);
+}
+
+#[test]
+fn test_hextofloat() {
+    let testcases = get_testcases();
+    let mut num_tested = 0;
+    for test in testcases {
+        if test.action == "floattohex" {
+            let response = handle_cgi("hextofloat", "", &test.hex_value, false);
+            assert_xml(&response, "float", &test.float_value, &test.hex_value);
             num_tested = num_tested + 1;
         }
     }

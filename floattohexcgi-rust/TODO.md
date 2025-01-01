@@ -1,3 +1,4 @@
-- add one test for lib
-- add more tests?
+- finish double
 - make cgi script call this
+- try substituting it in?
+- implement float16 and bfloat16
