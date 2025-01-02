@@ -1,3 +1,4 @@
+use half::{bf16, f16};
 use std::num::ParseIntError;
 
 pub fn float32_to_hex(float: f32, swap: bool) -> u32 {
@@ -34,6 +35,24 @@ pub fn hex_to_float64(hex: u64, swap: bool) -> f64 {
         hex.to_le_bytes()
     };
     f64::from_le_bytes(bytes)
+}
+
+pub fn float16_to_hex(float: f16, swap: bool) -> u16 {
+    let bytes: [u8; 2] = if swap {
+        float.to_be_bytes()
+    } else {
+        float.to_le_bytes()
+    };
+    u16::from_le_bytes(bytes)
+}
+
+pub fn hex_to_float16(hex: u16, swap: bool) -> f16 {
+    let bytes: [u8; 2] = if swap {
+        hex.to_be_bytes()
+    } else {
+        hex.to_le_bytes()
+    };
+    f16::from_le_bytes(bytes)
 }
 
 #[derive(Debug)]
@@ -82,7 +101,11 @@ impl FloatHexResult {
                 // the 18 here is for the 16 hex digits plus 2 for "0x"
                 |v| format!("{:#018x}", v),
             ),
-            _ => unimplemented!(),
+            FloatKind::Float16 | FloatKind::BFloat16 => self.hex_value.parse::<u16>().map_or(
+                self.hex_value.to_string(),
+                // the 6 here is for the 4 hex digits plus 2 for "0x"
+                |v| format!("{:#06x}", v),
+            ),
         }
     }
     pub fn to_xml(&self) -> String {
@@ -104,6 +127,8 @@ pub fn handle_cgi(action: &str, float_str: &str, hex_str: &str, swap: bool) -> S
         "hextofloat" => handle_hextofloat32(hex_str, swap),
         "doubletohex" => handle_float64tohex(float_str, swap),
         "hextodouble" => handle_hextofloat64(hex_str, swap),
+        "float16tohex" => handle_float16tohex(float_str, swap),
+        "hextofloat16" => handle_hextofloat16(hex_str, swap),
         _ => return make_unknown_action_error(),
     };
     return result.to_xml();
@@ -122,6 +147,17 @@ fn parse_hex_u32(hex_str: &str) -> Result<u32, ParseIntError> {
 
 fn parse_hex_u64(hex_str: &str) -> Result<u64, ParseIntError> {
     u64::from_str_radix(
+        hex_str
+            .to_lowercase()
+            .strip_prefix("0x")
+            .or(Some(hex_str))
+            .unwrap(),
+        16,
+    )
+}
+
+fn parse_hex_u16(hex_str: &str) -> Result<u16, ParseIntError> {
+    u16::from_str_radix(
         hex_str
             .to_lowercase()
             .strip_prefix("0x")
@@ -196,6 +232,41 @@ fn handle_hextofloat64(hex_str: &str, swap: bool) -> FloatHexResult {
     let float_value = hex_to_float64(hex, swap);
     return FloatHexResult {
         float_kind: FloatKind::Float64,
+        float_value: float_value.to_string(),
+        hex_value: hex.to_string(),
+    };
+}
+
+fn handle_float16tohex(float_str: &str, swap: bool) -> FloatHexResult {
+    let float = float_str.parse();
+    if float.is_err() {
+        return FloatHexResult {
+            float_kind: FloatKind::Float16,
+            float_value: float_str.to_string(),
+            hex_value: "ERROR".to_string(),
+        };
+    }
+    let hex_value = float16_to_hex(float.unwrap(), swap);
+    return FloatHexResult {
+        float_kind: FloatKind::Float16,
+        float_value: float_str.to_string(),
+        hex_value: hex_value.to_string(),
+    };
+}
+
+fn handle_hextofloat16(hex_str: &str, swap: bool) -> FloatHexResult {
+    let hex = parse_hex_u16(hex_str);
+    if hex.is_err() {
+        return FloatHexResult {
+            float_kind: FloatKind::Float16,
+            float_value: "ERROR".to_string(),
+            hex_value: hex_str.to_string(),
+        };
+    }
+    let hex = hex.unwrap();
+    let float_value = hex_to_float16(hex, swap);
+    return FloatHexResult {
+        float_kind: FloatKind::Float16,
         float_value: float_value.to_string(),
         hex_value: hex.to_string(),
     };

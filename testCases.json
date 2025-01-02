@@ -90,6 +90,37 @@
         "action": "doubleToHex",
         "double": -5e-324,
         "hex": "0x8000000000000001"
+    },
+    {
+        "action": "float16ToHex",
+        "float16": 1.0,
+        "hex": "0x3c00"
+    },
+    {
+        "action": "float16ToHex",
+        "float16": -1.0,
+        "hex": "0xbc00"
+    },
+    {
+        "action": "float16ToHex",
+        "float16": 0.000000059604645,
+        "hex": "0x0001",
+        "note": "smallest positive subnormal number"
+    },
+    {
+        "action": "float16ToHex",
+        "float16": 65504,
+        "hex": "0x7bff",
+        "note": "Largest normal number"
+    },
+    {
+        "action": "float16ToHex",
+        "float16": "Infinity",
+        "hex": "0x7c00"
+    },
+    {
+        "action": "float16ToHex",
+        "float16": "-Infinity",
+        "hex": "0xfc00"
     }
-
 ]
