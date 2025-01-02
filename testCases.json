@@ -122,5 +122,35 @@
         "action": "float16ToHex",
         "float16": "-Infinity",
         "hex": "0xfc00"
+    },
+    {
+        "action": "bfloat16ToHex",
+        "bfloat16": 1.0,
+        "hex": "0x3f80"
+    },
+    {
+        "action": "bfloat16ToHex",
+        "bfloat16": -2.0,
+        "hex": "0xc000"
+    },
+    {
+        "action": "bfloat16ToHex",
+        "bfloat16": 0.0,
+        "hex": "0x0000"
+    },
+    {
+        "action": "bfloat16ToHex",
+        "bfloat16": -0.0,
+        "hex": "0x8000"
+    },
+    {
+        "action": "bfloat16ToHex",
+        "bfloat16": "Infinity",
+        "hex": "0x7f80"
+    },
+    {
+        "action": "bfloat16ToHex",
+        "bfloat16": "-Infinity",
+        "hex": "0xff80"
     }
 ]

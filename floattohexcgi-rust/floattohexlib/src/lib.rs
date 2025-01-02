@@ -1,6 +1,10 @@
 use half::{bf16, f16};
 use std::num::ParseIntError;
 
+/// ```
+/// assert_eq!(floattohexlib::float32_to_hex(1.0, false), 0x3f800000);
+/// assert_eq!(floattohexlib::float32_to_hex(1.0, true), 0x0000803f);
+/// ```
 pub fn float32_to_hex(float: f32, swap: bool) -> u32 {
     let bytes: [u8; 4] = if swap {
         float.to_be_bytes()
@@ -10,6 +14,10 @@ pub fn float32_to_hex(float: f32, swap: bool) -> u32 {
     u32::from_le_bytes(bytes)
 }
 
+/// ```
+/// assert_eq!(floattohexlib::hex_to_float32(0x3f800000, false), 1.0);
+/// assert_eq!(floattohexlib::hex_to_float32(0x0000803f, true), 1.0);
+/// ```
 pub fn hex_to_float32(hex: u32, swap: bool) -> f32 {
     let bytes: [u8; 4] = if swap {
         hex.to_be_bytes()
@@ -19,6 +27,10 @@ pub fn hex_to_float32(hex: u32, swap: bool) -> f32 {
     f32::from_le_bytes(bytes)
 }
 
+/// ```
+/// assert_eq!(floattohexlib::float64_to_hex(1.0, false), 0x3ff0000000000000);
+/// assert_eq!(floattohexlib::float64_to_hex(1.0, true), 0x000000000000f03f);
+/// ```
 pub fn float64_to_hex(float: f64, swap: bool) -> u64 {
     let bytes: [u8; 8] = if swap {
         float.to_be_bytes()
@@ -28,6 +40,10 @@ pub fn float64_to_hex(float: f64, swap: bool) -> u64 {
     u64::from_le_bytes(bytes)
 }
 
+/// ```
+/// assert_eq!(floattohexlib::hex_to_float64(0x3ff0000000000000, false), 1.0);
+/// assert_eq!(floattohexlib::hex_to_float64(0x000000000000f03f, true), 1.0);
+/// ```
 pub fn hex_to_float64(hex: u64, swap: bool) -> f64 {
     let bytes: [u8; 8] = if swap {
         hex.to_be_bytes()
@@ -37,6 +53,10 @@ pub fn hex_to_float64(hex: u64, swap: bool) -> f64 {
     f64::from_le_bytes(bytes)
 }
 
+/// ```
+/// assert_eq!(floattohexlib::float16_to_hex(half::f16::from_f32(1.0), false), 0x3c00);
+/// assert_eq!(floattohexlib::float16_to_hex(half::f16::from_f32(1.0), true), 0x003c);
+/// ```
 pub fn float16_to_hex(float: f16, swap: bool) -> u16 {
     let bytes: [u8; 2] = if swap {
         float.to_be_bytes()
@@ -46,6 +66,10 @@ pub fn float16_to_hex(float: f16, swap: bool) -> u16 {
     u16::from_le_bytes(bytes)
 }
 
+/// ```
+/// assert_eq!(floattohexlib::hex_to_float16(0x3c00, false), half::f16::from_f32(1.0));
+/// assert_eq!(floattohexlib::hex_to_float16(0x003c, true), half::f16::from_f32(1.0));
+/// ```
 pub fn hex_to_float16(hex: u16, swap: bool) -> f16 {
     let bytes: [u8; 2] = if swap {
         hex.to_be_bytes()
@@ -53,6 +77,32 @@ pub fn hex_to_float16(hex: u16, swap: bool) -> f16 {
         hex.to_le_bytes()
     };
     f16::from_le_bytes(bytes)
+}
+
+/// ```
+/// assert_eq!(floattohexlib::bfloat16_to_hex(half::bf16::from_f32(1.0), false), 0x3f80);
+/// assert_eq!(floattohexlib::bfloat16_to_hex(half::bf16::from_f32(1.0), true), 0x803f);
+/// ```
+pub fn bfloat16_to_hex(float: bf16, swap: bool) -> u16 {
+    let bytes: [u8; 2] = if swap {
+        float.to_be_bytes()
+    } else {
+        float.to_le_bytes()
+    };
+    u16::from_le_bytes(bytes)
+}
+
+/// ```
+/// assert_eq!(floattohexlib::hex_to_bfloat16(0x3f80, false), half::bf16::from_f32(1.0));
+/// assert_eq!(floattohexlib::hex_to_bfloat16(0x803f, true), half::bf16::from_f32(1.0));
+/// ```
+pub fn hex_to_bfloat16(hex: u16, swap: bool) -> bf16 {
+    let bytes: [u8; 2] = if swap {
+        hex.to_be_bytes()
+    } else {
+        hex.to_le_bytes()
+    };
+    bf16::from_le_bytes(bytes)
 }
 
 #[derive(Debug)]
@@ -129,6 +179,8 @@ pub fn handle_cgi(action: &str, float_str: &str, hex_str: &str, swap: bool) -> S
         "hextodouble" => handle_hextofloat64(hex_str, swap),
         "float16tohex" => handle_float16tohex(float_str, swap),
         "hextofloat16" => handle_hextofloat16(hex_str, swap),
+        "bfloat16tohex" => handle_bfloat16tohex(float_str, swap),
+        "hextobfloat16" => handle_hextobfloat16(hex_str, swap),
         _ => return make_unknown_action_error(),
     };
     return result.to_xml();
@@ -272,6 +324,41 @@ fn handle_hextofloat16(hex_str: &str, swap: bool) -> FloatHexResult {
     };
 }
 
+fn handle_bfloat16tohex(float_str: &str, swap: bool) -> FloatHexResult {
+    let float = float_str.parse();
+    if float.is_err() {
+        return FloatHexResult {
+            float_kind: FloatKind::BFloat16,
+            float_value: float_str.to_string(),
+            hex_value: "ERROR".to_string(),
+        };
+    }
+    let hex_value = bfloat16_to_hex(float.unwrap(), swap);
+    return FloatHexResult {
+        float_kind: FloatKind::BFloat16,
+        float_value: float_str.to_string(),
+        hex_value: hex_value.to_string(),
+    };
+}
+
+fn handle_hextobfloat16(hex_str: &str, swap: bool) -> FloatHexResult {
+    let hex = parse_hex_u16(hex_str);
+    if hex.is_err() {
+        return FloatHexResult {
+            float_kind: FloatKind::BFloat16,
+            float_value: "ERROR".to_string(),
+            hex_value: hex_str.to_string(),
+        };
+    }
+    let hex = hex.unwrap();
+    let float_value = hex_to_bfloat16(hex, swap);
+    return FloatHexResult {
+        float_kind: FloatKind::BFloat16,
+        float_value: float_value.to_string(),
+        hex_value: hex.to_string(),
+    };
+}
+
 fn make_unknown_action_error() -> String {
     // We don't really know what XML tags to use here, so, umm, just use something
     let mut xml = "<values>".to_string();
@@ -279,15 +366,4 @@ fn make_unknown_action_error() -> String {
     xml.push_str("<hex>ERROR</hex>");
     xml.push_str("</values>");
     xml
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        //let result = add(2, 2);
-        //assert_eq!(result, 4);
-    }
 }

@@ -25,6 +25,7 @@ fn get_testcases() -> &'static Vec<TestCase> {
                 "floatToHex" => "float",
                 "doubleToHex" => "double",
                 "float16ToHex" => "float16",
+                "bfloat16ToHex" => "bfloat16",
                 _ => panic!("Unknown action {}", action),
             };
             let float_raw_value = &item[float_key];
@@ -191,6 +192,44 @@ fn test_hextofloat16() {
     for test in testcases {
         if test.action == "float16tohex" {
             let response = handle_cgi("hextofloat16", "", &test.hex_value, false);
+            assert_xml(
+                &response,
+                &test.float_key,
+                &test.float_value,
+                &test.hex_value,
+            );
+            num_tested = num_tested + 1;
+        }
+    }
+    assert!(num_tested > 0);
+}
+
+#[test]
+fn test_bfloat16tohex() {
+    let testcases = get_testcases();
+    let mut num_tested = 0;
+    for test in testcases {
+        if test.action == "bfloat16tohex" {
+            let response = handle_cgi(&test.action, &test.float_value, "", false);
+            assert_xml(
+                &response,
+                &test.float_key,
+                &test.float_value,
+                &test.hex_value,
+            );
+            num_tested = num_tested + 1;
+        }
+    }
+    assert!(num_tested > 0);
+}
+
+#[test]
+fn test_hextobfloat16() {
+    let testcases = get_testcases();
+    let mut num_tested = 0;
+    for test in testcases {
+        if test.action == "bfloat16tohex" {
+            let response = handle_cgi("hextobfloat16", "", &test.hex_value, false);
             assert_xml(
                 &response,
                 &test.float_key,
