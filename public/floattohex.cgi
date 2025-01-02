@@ -1,1 +1,1 @@
-../floattohex.cgi
+../floattohexcgi-rust/target/release/cgi_server
