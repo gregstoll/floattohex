@@ -7,7 +7,7 @@ struct TestCase {
     float_key: String,
     float_value: String,
     hex_value: String,
-    note: String,
+    _note: String,
 }
 
 static TEST_CASES: OnceLock<Vec<TestCase>> = OnceLock::new();
@@ -39,7 +39,7 @@ fn get_testcases() -> &'static Vec<TestCase> {
                 float_key: float_key.to_string(),
                 float_value: float_value,
                 hex_value: hex_value.to_string(),
-                note: note.to_string(),
+                _note: note.to_string(),
             });
         }
         cases
@@ -105,7 +105,12 @@ fn test_floattohex() {
     for test in testcases {
         if test.action == "floattohex" {
             let response = handle_cgi(&test.action, &test.float_value, "", false);
-            assert_xml(&response, "float", &test.float_value, &test.hex_value);
+            assert_xml(
+                &response,
+                &test.float_key,
+                &test.float_value,
+                &test.hex_value,
+            );
             num_tested = num_tested + 1;
         }
     }
@@ -119,7 +124,40 @@ fn test_hextofloat() {
     for test in testcases {
         if test.action == "floattohex" {
             let response = handle_cgi("hextofloat", "", &test.hex_value, false);
-            assert_xml(&response, "float", &test.float_value, &test.hex_value);
+            assert_xml(
+                &response,
+                &test.float_key,
+                &test.float_value,
+                &test.hex_value,
+            );
+            num_tested = num_tested + 1;
+        }
+    }
+    assert!(num_tested > 0);
+}
+
+#[test]
+fn test_doubletohex() {
+    let testcases = get_testcases();
+    let mut num_tested = 0;
+    for test in testcases {
+        if test.action == "doubletohex" {
+            let response = handle_cgi(&test.action, &test.float_value, "", false);
+            assert_xml(&response, "double", &test.float_value, &test.hex_value);
+            num_tested = num_tested + 1;
+        }
+    }
+    assert!(num_tested > 0);
+}
+
+#[test]
+fn test_hextodouble() {
+    let testcases = get_testcases();
+    let mut num_tested = 0;
+    for test in testcases {
+        if test.action == "doubletohex" {
+            let response = handle_cgi("hextodouble", "", &test.hex_value, false);
+            assert_xml(&response, "double", &test.float_value, &test.hex_value);
             num_tested = num_tested + 1;
         }
     }
