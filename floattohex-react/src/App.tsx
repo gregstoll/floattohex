@@ -366,6 +366,24 @@ export const DOUBLE_PARAMS : FloatingPointParams = {
     decimalPrecision: 17
 }
 
+export const FLOAT16_PARAMS : FloatingPointParams = {
+    floatType: "Float16",
+    hexDigits: 4,
+    exponentBits: 5,
+    fractionBits: 10,
+    exponentBias: 15,
+    decimalPrecision: 5
+};
+
+export const BFLOAT16_PARAMS : FloatingPointParams = {
+    floatType: "BFloat16",
+    hexDigits: 4,
+    exponentBits: 8,
+    fractionBits: 7,
+    exponentBias: 127,
+    decimalPrecision: 3
+};
+
 
 class App extends Component<{}, AppState> {
     constructor(props: {}) {
@@ -416,6 +434,12 @@ class App extends Component<{}, AppState> {
                 <HexConverter marginTop={50}
                     showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
                     {...DOUBLE_PARAMS} />
+                <HexConverter marginTop={50}
+                    showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
+                    {...FLOAT16_PARAMS} />
+                <HexConverter marginTop={50}
+                    showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
+                    {...BFLOAT16_PARAMS} />
             </div>
         );
     }
