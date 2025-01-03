@@ -23,7 +23,6 @@ td.binaryBreakdown {
     border-style: solid;
     width: fit-content;
     padding: 5px 20px 5px 20px;
-    margin-left: 10px;
     /* will just apply to the topmost one */
     margin-top: 20px;
 }
