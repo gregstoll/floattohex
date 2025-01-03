@@ -17,6 +17,22 @@ td.binaryBreakdown {
 
 .hexConverter {
     background-color: transparent;
+    border-radius: 20px;
+    border-color: #CCCFF1;
+    border-width: 2px;
+    border-style: solid;
+    width: fit-content;
+    padding: 5px 20px 5px 20px;
+    margin-left: 10px;
+    /* will just apply to the topmost one */
+    margin-top: 20px;
+}
+.hexConverter + .hexConverter {
+    margin-top: 30px;
+}
+.hexConverter h1 {
+    font-size: 125%;
+    margin-top: 0px;
 }
 
 .hexConverter.hexConverterFlash {

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use cgi::http;
 
@@ -13,12 +13,11 @@ fn success(s: &str) -> cgi::Response {
 }
 
 fn get_query_value<'a>(
-    query_parts: &'a HashMap<String, String>,
+    query_parts: &'a HashMap<Cow<'_, str>, Cow<'_, str>>,
     key: &str,
-) -> Result<&'a str, String> {
+) -> Result<&'a Cow<'a, str>, String> {
     query_parts
         .get(key)
-        .map(|x| x.as_str())
         .ok_or(format!("Internal error - no {} specified!", key))
 }
 
@@ -28,9 +27,8 @@ fn process_request(request: &cgi::Request) -> Result<String, String> {
         .query()
         .ok_or(String::from("Internal error - no query string?"))?;
     // this is inefficient, can make this a HashMap<&str, &str> or something?
-    let query_parts: HashMap<String, String> = url::form_urlencoded::parse(query.as_bytes())
-        .into_owned()
-        .collect();
+    let query_parts: HashMap<Cow<'_, str>, Cow<'_, str>> =
+        url::form_urlencoded::parse(query.as_bytes()).collect();
     let action = get_query_value(&query_parts, "action")?;
     let swap = get_query_value(&query_parts, "swap")? == "1";
     let is_to_float = action.starts_with("hexto");

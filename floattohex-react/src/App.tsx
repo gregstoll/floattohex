@@ -207,6 +207,7 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
 
 export interface FloatingPointParams {
     floatType: string,
+    floatLongDescription: string,
     hexDigits: number,
     exponentBits: number,
     fractionBits: number,
@@ -242,7 +243,7 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
 
         //console.log('HexConverter: ' + props);
         this.state = { 'hexValue': "", 'floatingValue': '', 'calculatedHexValue': "", 'calculatedFloatingValue': "", 'multiplier': '1', flash: false };
-        this.formStyle = {}
+        this.formStyle = {};
         if (props.marginTop) {
             this.formStyle['marginTop'] = props.marginTop + 'px';
         }
@@ -327,6 +328,7 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
                 customTag="div"
             >
                 <form style={this.formStyle}>
+                    <h1 dangerouslySetInnerHTML={{__html: this.props.floatLongDescription}}></h1>
                     <p>
                         <label>Hex value: <input type="text" value={this.displayHex(this.state.hexValue)} onChange={e => this.changeHexValue(e)} /></label>
                         <input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={() => this.convertToFloating()} />
@@ -350,6 +352,7 @@ interface AppState {
 
 export const FLOAT_PARAMS : FloatingPointParams = {
     floatType: "Float",
+    floatLongDescription: "<a href=\"https://en.wikipedia.org/wiki/Single-precision_floating-point_format\" target=\"_blank\">Single-precision</a> floating point",
     hexDigits: 8,
     exponentBits: 8,
     fractionBits: 23,
@@ -359,12 +362,33 @@ export const FLOAT_PARAMS : FloatingPointParams = {
 
 export const DOUBLE_PARAMS : FloatingPointParams = {
     floatType: "Double",
+    floatLongDescription: "<a href=\"https://en.wikipedia.org/wiki/Double-precision_floating-point_format\" target=\"_blank\">Double-precision</a> floating point",
     hexDigits: 16,
     exponentBits: 11,
     fractionBits: 52,
     exponentBias: 1023,
     decimalPrecision: 17
 }
+
+export const FLOAT16_PARAMS : FloatingPointParams = {
+    floatType: "Float16",
+    floatLongDescription: "<a href=\"https://en.wikipedia.org/wiki/Half-precision_floating-point_format\" target=\"_blank\">Half-precision</a> floating point",
+    hexDigits: 4,
+    exponentBits: 5,
+    fractionBits: 10,
+    exponentBias: 15,
+    decimalPrecision: 5
+};
+
+export const BFLOAT16_PARAMS : FloatingPointParams = {
+    floatType: "bfloat16",
+    floatLongDescription: "<a href=\"https://en.wikipedia.org/wiki/Bfloat16_floating-point_format\" target=\"_blank\">Google bfloat16</a> floating point",
+    hexDigits: 4,
+    exponentBits: 8,
+    fractionBits: 7,
+    exponentBias: 127,
+    decimalPrecision: 3
+};
 
 
 class App extends Component<{}, AppState> {
@@ -410,12 +434,20 @@ class App extends Component<{}, AppState> {
                     <label><input type="checkbox" checked={this.state.uppercaseLetters} onChange={e => this.handleUppercaseLettersChange(e)} />
                             &nbsp;Uppercase letters in hex</label>
                 </div>
-                <HexConverter
-                    showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
-                    {...FLOAT_PARAMS} />
-                <HexConverter marginTop={50}
-                    showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
-                    {...DOUBLE_PARAMS} />
+                <div className="hexConverterContainer">
+                    <HexConverter
+                        showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
+                        {...FLOAT_PARAMS} />
+                    <HexConverter marginTop={0}
+                        showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
+                        {...DOUBLE_PARAMS} />
+                    <HexConverter marginTop={0}
+                        showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
+                        {...FLOAT16_PARAMS} />
+                    <HexConverter marginTop={0}
+                        showExplanation={this.state.showExplanation} flipEndianness={this.state.flipEndianness} uppercaseLetters={this.state.uppercaseLetters}
+                        {...BFLOAT16_PARAMS} />
+                </div>
             </div>
         );
     }
