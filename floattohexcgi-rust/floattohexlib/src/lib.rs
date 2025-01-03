@@ -183,38 +183,26 @@ pub fn handle_cgi(action: &str, float_str: &str, hex_str: &str, swap: bool) -> S
         "hextobfloat16" => handle_hextobfloat16(hex_str, swap),
         _ => return make_unknown_action_error(),
     };
-    return result.to_xml();
+    result.to_xml()
 }
 
 fn parse_hex_u32(hex_str: &str) -> Result<u32, ParseIntError> {
     u32::from_str_radix(
-        hex_str
-            .to_lowercase()
-            .strip_prefix("0x")
-            .or(Some(hex_str))
-            .unwrap(),
+        hex_str.to_lowercase().strip_prefix("0x").unwrap_or(hex_str),
         16,
     )
 }
 
 fn parse_hex_u64(hex_str: &str) -> Result<u64, ParseIntError> {
     u64::from_str_radix(
-        hex_str
-            .to_lowercase()
-            .strip_prefix("0x")
-            .or(Some(hex_str))
-            .unwrap(),
+        hex_str.to_lowercase().strip_prefix("0x").unwrap_or(hex_str),
         16,
     )
 }
 
 fn parse_hex_u16(hex_str: &str) -> Result<u16, ParseIntError> {
     u16::from_str_radix(
-        hex_str
-            .to_lowercase()
-            .strip_prefix("0x")
-            .or(Some(hex_str))
-            .unwrap(),
+        hex_str.to_lowercase().strip_prefix("0x").unwrap_or(hex_str),
         16,
     )
 }
@@ -229,11 +217,11 @@ fn handle_float32tohex(float_str: &str, swap: bool) -> FloatHexResult {
         };
     }
     let hex_value = float32_to_hex(float.unwrap(), swap);
-    return FloatHexResult {
+    FloatHexResult {
         float_kind: FloatKind::Float32,
         float_value: float_str.to_string(),
         hex_value: hex_value.to_string(),
-    };
+    }
 }
 
 fn handle_hextofloat32(hex_str: &str, swap: bool) -> FloatHexResult {
@@ -247,11 +235,11 @@ fn handle_hextofloat32(hex_str: &str, swap: bool) -> FloatHexResult {
     }
     let hex = hex.unwrap();
     let float_value = hex_to_float32(hex, swap);
-    return FloatHexResult {
+    FloatHexResult {
         float_kind: FloatKind::Float32,
         float_value: float_value.to_string(),
         hex_value: hex.to_string(),
-    };
+    }
 }
 
 fn handle_float64tohex(float_str: &str, swap: bool) -> FloatHexResult {
@@ -264,11 +252,11 @@ fn handle_float64tohex(float_str: &str, swap: bool) -> FloatHexResult {
         };
     }
     let hex_value = float64_to_hex(float.unwrap(), swap);
-    return FloatHexResult {
+    FloatHexResult {
         float_kind: FloatKind::Float64,
         float_value: float_str.to_string(),
         hex_value: hex_value.to_string(),
-    };
+    }
 }
 
 fn handle_hextofloat64(hex_str: &str, swap: bool) -> FloatHexResult {
@@ -282,11 +270,11 @@ fn handle_hextofloat64(hex_str: &str, swap: bool) -> FloatHexResult {
     }
     let hex = hex.unwrap();
     let float_value = hex_to_float64(hex, swap);
-    return FloatHexResult {
+    FloatHexResult {
         float_kind: FloatKind::Float64,
         float_value: float_value.to_string(),
         hex_value: hex.to_string(),
-    };
+    }
 }
 
 fn handle_float16tohex(float_str: &str, swap: bool) -> FloatHexResult {
@@ -299,11 +287,11 @@ fn handle_float16tohex(float_str: &str, swap: bool) -> FloatHexResult {
         };
     }
     let hex_value = float16_to_hex(float.unwrap(), swap);
-    return FloatHexResult {
+    FloatHexResult {
         float_kind: FloatKind::Float16,
         float_value: float_str.to_string(),
         hex_value: hex_value.to_string(),
-    };
+    }
 }
 
 fn handle_hextofloat16(hex_str: &str, swap: bool) -> FloatHexResult {
@@ -317,11 +305,11 @@ fn handle_hextofloat16(hex_str: &str, swap: bool) -> FloatHexResult {
     }
     let hex = hex.unwrap();
     let float_value = hex_to_float16(hex, swap);
-    return FloatHexResult {
+    FloatHexResult {
         float_kind: FloatKind::Float16,
         float_value: float_value.to_string(),
         hex_value: hex.to_string(),
-    };
+    }
 }
 
 fn handle_bfloat16tohex(float_str: &str, swap: bool) -> FloatHexResult {
@@ -334,11 +322,11 @@ fn handle_bfloat16tohex(float_str: &str, swap: bool) -> FloatHexResult {
         };
     }
     let hex_value = bfloat16_to_hex(float.unwrap(), swap);
-    return FloatHexResult {
+    FloatHexResult {
         float_kind: FloatKind::BFloat16,
         float_value: float_str.to_string(),
         hex_value: hex_value.to_string(),
-    };
+    }
 }
 
 fn handle_hextobfloat16(hex_str: &str, swap: bool) -> FloatHexResult {
@@ -352,11 +340,11 @@ fn handle_hextobfloat16(hex_str: &str, swap: bool) -> FloatHexResult {
     }
     let hex = hex.unwrap();
     let float_value = hex_to_bfloat16(hex, swap);
-    return FloatHexResult {
+    FloatHexResult {
         float_kind: FloatKind::BFloat16,
         float_value: float_value.to_string(),
         hex_value: hex.to_string(),
-    };
+    }
 }
 
 fn make_unknown_action_error() -> String {

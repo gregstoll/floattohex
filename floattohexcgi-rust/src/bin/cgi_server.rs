@@ -34,11 +34,11 @@ fn process_request(request: &cgi::Request) -> Result<String, String> {
     let is_to_float = action.starts_with("hexto");
     if is_to_float {
         let hex_value = get_query_value(&query_parts, "hex")?;
-        Ok(handle_cgi(&action, "", &hex_value, swap))
+        Ok(handle_cgi(action, "", hex_value, swap))
     } else {
         // take off the "tohex" at the end
         let float_value = get_query_value(&query_parts, &action[..action.len() - 5])?;
-        Ok(handle_cgi(&action, &float_value, "", swap))
+        Ok(handle_cgi(action, float_value, "", swap))
     }
 }
 
