@@ -4,6 +4,13 @@ import AnimateOnChange from 'react-animate-on-change';
 require('./style.css')
 
 const SCRIPT_URI = process.env.NODE_ENV === 'development' ? "https://gregstoll.dyndns.org/~gregstoll/floattohex/floattohex.cgi" : "floattohex.cgi";
+const USE_BINDGEN = true;
+
+declare global {
+    interface Window {
+      hexfloatcgi: (queryString: string) => string;
+    }
+  }
 
 export interface HexFloatBreakdownProps extends HexConverterProps {
     hexValue: string,
@@ -262,34 +269,41 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
         let xmlDoc = parser.parseFromString(s, "text/xml");
         return xmlDoc;
     }
-    doConvert(query: string, mode: ConvertMode) {
-        let that = this;
-        fetch(SCRIPT_URI + '?' + query).then(response => {
-            return response.text();
-        }).then(responseText => {
-            let documentElement = that.parseXml(responseText).documentElement;
-            if (documentElement === null) {
-                return;
+    showConvertResult(responseText: string, mode: ConvertMode) {
+        let documentElement = this.parseXml(responseText).documentElement;
+        if (documentElement === null) {
+            return;
+        }
+        let hexElem: Element = documentElement.getElementsByTagName("hex")[0];
+        let hexValue: string = hexElem.childNodes[0].nodeValue || "";
+        let floatingElem: Element = documentElement.getElementsByTagName(this.props.floatType.toLowerCase())[0];
+        while (hexValue.length < this.props.hexDigits + 2) {
+            hexValue = hexValue.substring(0, 2) + "0" + hexValue.substring(2);
+        }
+        let floatingValue : string = floatingElem.childNodes[0].nodeValue || "";
+        if (mode === ConvertMode.FLOATING_TO_HEX) {
+            let parsedFloatValue = parseFloat(floatingValue);
+            if (!isNaN(parsedFloatValue)) {
+                floatingValue = (parsedFloatValue / this.getNumericMultiplier()).toString();
             }
-            let hexElem: Element = documentElement.getElementsByTagName("hex")[0];
-            let hexValue: string = hexElem.childNodes[0].nodeValue || "";
-            let floatingElem: Element = documentElement.getElementsByTagName(that.props.floatType.toLowerCase())[0];
-            while (hexValue.length < that.props.hexDigits + 2) {
-                hexValue = hexValue.substring(0, 2) + "0" + hexValue.substring(2);
-            }
-            let floatingValue : string = floatingElem.childNodes[0].nodeValue || "";
-            if (mode === ConvertMode.FLOATING_TO_HEX) {
-                let parsedFloatValue = parseFloat(floatingValue);
-                if (!isNaN(parsedFloatValue)) {
-                    floatingValue = (parsedFloatValue / that.getNumericMultiplier()).toString();
-                }
-            }
-            that.setState((state, _props) => {
-                // This is not great - it would be nicer to put in componentDidUpdate()
-                let isChange = hexValue !== state.calculatedHexValue || floatingValue !== state.calculatedFloatingValue;
-                return { 'hexValue': hexValue, 'floatingValue': floatingValue, 'calculatedHexValue': hexValue, 'calculatedFloatingValue': floatingValue, 'flash': isChange };
-            });
+        }
+        this.setState((state, _props) => {
+            // This is not great - it would be nicer to put in componentDidUpdate()
+            let isChange = hexValue !== state.calculatedHexValue || floatingValue !== state.calculatedFloatingValue;
+            return { 'hexValue': hexValue, 'floatingValue': floatingValue, 'calculatedHexValue': hexValue, 'calculatedFloatingValue': floatingValue, 'flash': isChange };
         });
+    }
+    doConvert(query: string, mode: ConvertMode) {
+        if (USE_BINDGEN) {
+            this.showConvertResult(window.hexfloatcgi(query), mode);
+        } else {
+            let that = this;
+            fetch(SCRIPT_URI + '?' + query).then(response => {
+                return response.text();
+            }).then(responseText => {
+                that.showConvertResult(responseText, mode);
+            });
+        }
     }
     displayHex(hexValue: string): string {
         if (this.props.uppercaseLetters) {

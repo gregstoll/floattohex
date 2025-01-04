@@ -51,6 +51,8 @@
         // And afterwards we can use all the functionality defined in wasm.
         const result = hexfloatcgi("action=floattohex&float=4.5&swap=0");
         console.log(`${result}`);
+        // This makes it easier to call from App.tsx
+        window.hexfloatcgi = hexfloatcgi;
       }
 
       run();
