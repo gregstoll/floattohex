@@ -46,7 +46,6 @@ version = "0.1.0"
 dependencies = [
  "cgi",
  "floattohexlib",
- "url",
 ]
 
 [[package]]
@@ -54,6 +53,7 @@ name = "floattohexlib"
 version = "0.1.0"
 dependencies = [
  "half",
+ "url",
 ]
 
 [[package]]
