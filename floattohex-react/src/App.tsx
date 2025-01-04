@@ -295,7 +295,11 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
     }
     doConvert(query: string, mode: ConvertMode) {
         if (USE_BINDGEN) {
-            this.showConvertResult(window.hexfloatcgi(query), mode);
+            let start_time = performance.now();
+            let responseText = window.hexfloatcgi(query);
+            let end_time = performance.now();
+            console.log(`bindgen call took ${(end_time - start_time).toFixed(2)}ms`);
+            this.showConvertResult(responseText, mode);
         } else {
             let that = this;
             fetch(SCRIPT_URI + '?' + query).then(response => {
