@@ -241,3 +241,31 @@ fn test_hextobfloat16() {
     }
     assert!(num_tested > 0);
 }
+
+#[test]
+fn test_hextofloat_querystring_noswap() -> Result<(), String> {
+    let response = handle_cgi_querystring("action=hextofloat&hex=40900000&swap=0")?;
+    assert_xml(&response, "float", "4.5", "0x40900000");
+    Ok(())
+}
+
+#[test]
+fn test_hextofloat_querystring_swap() -> Result<(), String> {
+    let response = handle_cgi_querystring("action=hextofloat&hex=0x00009040&swap=1")?;
+    assert_xml(&response, "float", "4.5", "0x00009040");
+    Ok(())
+}
+
+#[test]
+fn test_floattohex_querystring_noswap() -> Result<(), String> {
+    let response = handle_cgi_querystring("action=floattohex&float=4.5&swap=0")?;
+    assert_xml(&response, "float", "4.5", "0x40900000");
+    Ok(())
+}
+
+#[test]
+fn test_floattohex_querystring_swap() -> Result<(), String> {
+    let response = handle_cgi_querystring("action=floattohex&float=4.5&swap=1")?;
+    assert_xml(&response, "float", "4.5", "0x00009040");
+    Ok(())
+}

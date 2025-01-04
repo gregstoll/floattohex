@@ -8,3 +8,4 @@ build
 *.pyd
 floattohexcgi-rust/floattohexlib/target/*
 floattohexcgi-rust/target/*
+floattohexcgi-rust/floattohexlib-bindgen/target/*
