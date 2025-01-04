@@ -1,6 +1,6 @@
 build
 -----
-wasm-pack build --target web
+wasm-pack build --release --target web
 
 output goes to pkg/ directory
 
