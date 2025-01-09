@@ -28,6 +28,7 @@ td.binaryBreakdown {
 }
 .hexConverter + .hexConverter {
     margin-top: 30px;
+    margin-bottom: 30px;
 }
 .hexConverter h1 {
     font-size: 125%;
