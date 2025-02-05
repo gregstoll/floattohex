@@ -158,5 +158,17 @@
         "float": 1.33333333333333,
         "coercedFloat": 1.3333334,
         "hex": "0x3faaaaab"
+    },
+    {
+        "action": "float16ToHex",
+        "float16": 1.3333333333333333,
+        "coercedFloat": 1.3330078,
+        "hex": "0x3d55"
+    },
+    {
+        "action": "bfloat16ToHex",
+        "bfloat16": 1.3333333333333333,
+        "coercedFloat": 1.3359375,
+        "hex": "0x3fab"
     }
 ]

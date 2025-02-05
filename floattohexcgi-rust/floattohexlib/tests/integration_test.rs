@@ -203,10 +203,14 @@ fn test_hextodouble() {
     for test in testcases {
         if test.action == "doubletohex" {
             let response = handle_cgi("hextodouble", "", &test.hex_value, false);
+            let expected_float_value: &str = test
+                .coerced_float_value
+                .as_ref()
+                .unwrap_or(&test.float_value);
             assert_xml(
                 &response,
                 "double",
-                &test.float_value,
+                expected_float_value,
                 &None,
                 &test.hex_value,
             );
@@ -243,10 +247,14 @@ fn test_hextofloat16() {
     for test in testcases {
         if test.action == "float16tohex" {
             let response = handle_cgi("hextofloat16", "", &test.hex_value, false);
+            let expected_float_value: &str = test
+                .coerced_float_value
+                .as_ref()
+                .unwrap_or(&test.float_value);
             assert_xml(
                 &response,
                 &test.float_key,
-                &test.float_value,
+                expected_float_value,
                 &None,
                 &test.hex_value,
             );
@@ -283,10 +291,14 @@ fn test_hextobfloat16() {
     for test in testcases {
         if test.action == "bfloat16tohex" {
             let response = handle_cgi("hextobfloat16", "", &test.hex_value, false);
+            let expected_float_value: &str = test
+                .coerced_float_value
+                .as_ref()
+                .unwrap_or(&test.float_value);
             assert_xml(
                 &response,
                 &test.float_key,
-                &test.float_value,
+                expected_float_value,
                 &None,
                 &test.hex_value,
             );
