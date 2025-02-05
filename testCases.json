@@ -152,5 +152,11 @@
         "action": "bfloat16ToHex",
         "bfloat16": "-Infinity",
         "hex": "0xff80"
+    },
+    {
+        "action": "floatToHex",
+        "float": 1.33333333333333,
+        "coercedFloat": 1.3333334,
+        "hex": "0x3faaaaab"
     }
 ]

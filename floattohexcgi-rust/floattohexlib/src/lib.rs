@@ -212,28 +212,23 @@ pub fn handle_cgi(action: &str, float_str: &str, hex_str: &str, swap: bool) -> S
 }
 
 fn clean_hex_str(hex_str: &str) -> String {
-    hex_str.to_lowercase().strip_prefix("0x").unwrap_or(hex_str).replace(" ", "")
+    hex_str
+        .to_lowercase()
+        .strip_prefix("0x")
+        .unwrap_or(hex_str)
+        .replace(" ", "")
 }
 
 fn parse_hex_u32(hex_str: &str) -> Result<u32, ParseIntError> {
-    u32::from_str_radix(
-        &clean_hex_str(hex_str),
-        16,
-    )
+    u32::from_str_radix(&clean_hex_str(hex_str), 16)
 }
 
 fn parse_hex_u64(hex_str: &str) -> Result<u64, ParseIntError> {
-    u64::from_str_radix(
-        &clean_hex_str(hex_str),
-        16,
-    )
+    u64::from_str_radix(&clean_hex_str(hex_str), 16)
 }
 
 fn parse_hex_u16(hex_str: &str) -> Result<u16, ParseIntError> {
-    u16::from_str_radix(
-        &clean_hex_str(hex_str),
-        16,
-    )
+    u16::from_str_radix(&clean_hex_str(hex_str), 16)
 }
 
 fn handle_float32tohex(float_str: &str, swap: bool) -> FloatHexResult {

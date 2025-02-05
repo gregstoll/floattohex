@@ -6,6 +6,7 @@ struct TestCase {
     action: String,
     float_key: String,
     float_value: String,
+    coerced_float_value: Option<String>,
     hex_value: String,
     _note: String,
 }
@@ -36,10 +37,12 @@ fn get_testcases() -> &'static Vec<TestCase> {
             };
             let hex_value = item["hex"].as_str().unwrap();
             let note = item.get("note").map_or("", |v| v.as_str().unwrap());
+            let coerced_float_value = item.get("coercedFloat").map(|v| v.to_string());
             cases.push(TestCase {
                 action: action.to_lowercase().to_string(),
                 float_key: float_key.to_string(),
                 float_value: float_value,
+                coerced_float_value: coerced_float_value,
                 hex_value: hex_value.to_string(),
                 _note: note.to_string(),
             });
@@ -56,11 +59,19 @@ fn assert_xml(
     response: &str,
     expected_float_key: &str,
     expected_float_value: &str,
+    expected_coerced_float_value: &Option<String>,
     expected_hex_value: &str,
 ) {
     let response_elem = xmltree::Element::parse(response.as_bytes()).unwrap();
     assert_eq!(response_elem.name, "values");
-    assert_eq!(response_elem.children.len(), 2);
+    assert_eq!(
+        response_elem.children.len(),
+        if expected_coerced_float_value.is_some() {
+            3
+        } else {
+            2
+        }
+    );
     assert_eq!(
         response_elem.children[0].as_element().unwrap().name,
         expected_float_key
@@ -98,6 +109,27 @@ fn assert_xml(
             .unwrap(),
         expected_hex_value
     );
+    if expected_coerced_float_value.is_some() {
+        assert_eq!(
+            response_elem.children[2].as_element().unwrap().name,
+            "coercedFloat"
+        );
+        assert_eq!(
+            response_elem.children[2]
+                .as_element()
+                .unwrap()
+                .children
+                .len(),
+            1
+        );
+        let expected_coerced_float_value: &str = expected_coerced_float_value.as_ref().unwrap();
+        assert_eq!(
+            response_elem.children[2].as_element().unwrap().children[0]
+                .as_text()
+                .unwrap(),
+            expected_coerced_float_value
+        );
+    }
 }
 
 #[test]
@@ -111,6 +143,7 @@ fn test_floattohex() {
                 &response,
                 &test.float_key,
                 &test.float_value,
+                &test.coerced_float_value,
                 &test.hex_value,
             );
             num_tested = num_tested + 1;
@@ -126,10 +159,15 @@ fn test_hextofloat() {
     for test in testcases {
         if test.action == "floattohex" {
             let response = handle_cgi("hextofloat", "", &test.hex_value, false);
+            let expected_float_value: &str = test
+                .coerced_float_value
+                .as_ref()
+                .unwrap_or(&test.float_value);
             assert_xml(
                 &response,
                 &test.float_key,
-                &test.float_value,
+                expected_float_value,
+                &None,
                 &test.hex_value,
             );
             num_tested = num_tested + 1;
@@ -145,7 +183,13 @@ fn test_doubletohex() {
     for test in testcases {
         if test.action == "doubletohex" {
             let response = handle_cgi(&test.action, &test.float_value, "", false);
-            assert_xml(&response, "double", &test.float_value, &test.hex_value);
+            assert_xml(
+                &response,
+                "double",
+                &test.float_value,
+                &None,
+                &test.hex_value,
+            );
             num_tested = num_tested + 1;
         }
     }
@@ -159,7 +203,13 @@ fn test_hextodouble() {
     for test in testcases {
         if test.action == "doubletohex" {
             let response = handle_cgi("hextodouble", "", &test.hex_value, false);
-            assert_xml(&response, "double", &test.float_value, &test.hex_value);
+            assert_xml(
+                &response,
+                "double",
+                &test.float_value,
+                &None,
+                &test.hex_value,
+            );
             num_tested = num_tested + 1;
         }
     }
@@ -177,6 +227,7 @@ fn test_float16tohex() {
                 &response,
                 &test.float_key,
                 &test.float_value,
+                &test.coerced_float_value,
                 &test.hex_value,
             );
             num_tested = num_tested + 1;
@@ -196,6 +247,7 @@ fn test_hextofloat16() {
                 &response,
                 &test.float_key,
                 &test.float_value,
+                &None,
                 &test.hex_value,
             );
             num_tested = num_tested + 1;
@@ -215,6 +267,7 @@ fn test_bfloat16tohex() {
                 &response,
                 &test.float_key,
                 &test.float_value,
+                &test.coerced_float_value,
                 &test.hex_value,
             );
             num_tested = num_tested + 1;
@@ -234,6 +287,7 @@ fn test_hextobfloat16() {
                 &response,
                 &test.float_key,
                 &test.float_value,
+                &None,
                 &test.hex_value,
             );
             num_tested = num_tested + 1;
@@ -245,27 +299,27 @@ fn test_hextobfloat16() {
 #[test]
 fn test_hextofloat_querystring_noswap() -> Result<(), String> {
     let response = handle_cgi_querystring("action=hextofloat&hex=40900000&swap=0")?;
-    assert_xml(&response, "float", "4.5", "0x40900000");
+    assert_xml(&response, "float", "4.5", &None, "0x40900000");
     Ok(())
 }
 
 #[test]
 fn test_hextofloat_querystring_swap() -> Result<(), String> {
     let response = handle_cgi_querystring("action=hextofloat&hex=0x00009040&swap=1")?;
-    assert_xml(&response, "float", "4.5", "0x00009040");
+    assert_xml(&response, "float", "4.5", &None, "0x00009040");
     Ok(())
 }
 
 #[test]
 fn test_floattohex_querystring_noswap() -> Result<(), String> {
     let response = handle_cgi_querystring("action=floattohex&float=4.5&swap=0")?;
-    assert_xml(&response, "float", "4.5", "0x40900000");
+    assert_xml(&response, "float", "4.5", &None, "0x40900000");
     Ok(())
 }
 
 #[test]
 fn test_floattohex_querystring_swap() -> Result<(), String> {
     let response = handle_cgi_querystring("action=floattohex&float=4.5&swap=1")?;
-    assert_xml(&response, "float", "4.5", "0x00009040");
+    assert_xml(&response, "float", "4.5", &None, "0x00009040");
     Ok(())
 }
