@@ -128,6 +128,7 @@ impl FloatKind {
 struct FloatHexResult {
     float_kind: FloatKind,
     float_value: String,
+    coerced_float_value: Option<String>,
     hex_value: String,
 }
 
@@ -159,13 +160,20 @@ impl FloatHexResult {
         }
     }
     pub fn to_xml(&self) -> String {
+        // TODO refactor float_string_for_display() and use it here
+        let c = self
+            .coerced_float_value
+            .as_ref()
+            .map(|f| format!("\n<coercedFloat></coercedFloat>"))
+            .unwrap_or("".to_string());
         format!(
             "<values>
     <{float_key}>{float_value}</{float_key}>
-    <hex>{hex_value}</hex>
+    <hex>{hex_value}</hex>{coerced_float_tag}
 </values>",
             float_key = self.float_kind.to_key_string(),
             float_value = self.float_string_for_display(),
+            coerced_float_tag = c,
             hex_value = self.hex_value_string()
         )
     }
@@ -237,13 +245,17 @@ fn handle_float32tohex(float_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float32,
             float_value: float_str.to_string(),
+            coerced_float_value: None,
             hex_value: "ERROR".to_string(),
         };
     }
-    let hex_value = float32_to_hex(float.unwrap(), swap);
+    let float = float.unwrap();
+    let hex_value = float32_to_hex(float, swap);
+    // TODO - see if need coerced_float_value
     FloatHexResult {
         float_kind: FloatKind::Float32,
         float_value: float_str.to_string(),
+        coerced_float_value: Some(float.to_string()),
         hex_value: hex_value.to_string(),
     }
 }
@@ -254,6 +266,7 @@ fn handle_hextofloat32(hex_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float32,
             float_value: "ERROR".to_string(),
+            coerced_float_value: None,
             hex_value: hex_str.to_string(),
         };
     }
@@ -262,6 +275,7 @@ fn handle_hextofloat32(hex_str: &str, swap: bool) -> FloatHexResult {
     FloatHexResult {
         float_kind: FloatKind::Float32,
         float_value: float_value.to_string(),
+        coerced_float_value: None,
         hex_value: hex.to_string(),
     }
 }
@@ -272,13 +286,16 @@ fn handle_float64tohex(float_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float64,
             float_value: float_str.to_string(),
+            coerced_float_value: None,
             hex_value: "ERROR".to_string(),
         };
     }
     let hex_value = float64_to_hex(float.unwrap(), swap);
+    // TODO
     FloatHexResult {
         float_kind: FloatKind::Float64,
         float_value: float_str.to_string(),
+        coerced_float_value: None,
         hex_value: hex_value.to_string(),
     }
 }
@@ -289,6 +306,7 @@ fn handle_hextofloat64(hex_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float64,
             float_value: "ERROR".to_string(),
+            coerced_float_value: None,
             hex_value: hex_str.to_string(),
         };
     }
@@ -297,6 +315,7 @@ fn handle_hextofloat64(hex_str: &str, swap: bool) -> FloatHexResult {
     FloatHexResult {
         float_kind: FloatKind::Float64,
         float_value: float_value.to_string(),
+        coerced_float_value: None,
         hex_value: hex.to_string(),
     }
 }
@@ -307,13 +326,16 @@ fn handle_float16tohex(float_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float16,
             float_value: float_str.to_string(),
+            coerced_float_value: None,
             hex_value: "ERROR".to_string(),
         };
     }
     let hex_value = float16_to_hex(float.unwrap(), swap);
+    // TODO
     FloatHexResult {
         float_kind: FloatKind::Float16,
         float_value: float_str.to_string(),
+        coerced_float_value: None,
         hex_value: hex_value.to_string(),
     }
 }
@@ -324,6 +346,7 @@ fn handle_hextofloat16(hex_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float16,
             float_value: "ERROR".to_string(),
+            coerced_float_value: None,
             hex_value: hex_str.to_string(),
         };
     }
@@ -332,6 +355,7 @@ fn handle_hextofloat16(hex_str: &str, swap: bool) -> FloatHexResult {
     FloatHexResult {
         float_kind: FloatKind::Float16,
         float_value: float_value.to_string(),
+        coerced_float_value: None,
         hex_value: hex.to_string(),
     }
 }
@@ -342,13 +366,16 @@ fn handle_bfloat16tohex(float_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::BFloat16,
             float_value: float_str.to_string(),
+            coerced_float_value: None,
             hex_value: "ERROR".to_string(),
         };
     }
     let hex_value = bfloat16_to_hex(float.unwrap(), swap);
+    // TODO
     FloatHexResult {
         float_kind: FloatKind::BFloat16,
         float_value: float_str.to_string(),
+        coerced_float_value: None,
         hex_value: hex_value.to_string(),
     }
 }
@@ -359,6 +386,7 @@ fn handle_hextobfloat16(hex_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::BFloat16,
             float_value: "ERROR".to_string(),
+            coerced_float_value: None,
             hex_value: hex_str.to_string(),
         };
     }
@@ -367,6 +395,7 @@ fn handle_hextobfloat16(hex_str: &str, swap: bool) -> FloatHexResult {
     FloatHexResult {
         float_kind: FloatKind::BFloat16,
         float_value: float_value.to_string(),
+        coerced_float_value: None,
         hex_value: hex.to_string(),
     }
 }
