@@ -133,11 +133,11 @@ struct FloatHexResult {
 }
 
 impl FloatHexResult {
-    pub fn float_string_for_display(&self) -> &str {
-        match self.float_value.as_str() {
+    pub fn float_string_for_display<'a>(float_str: &'a str) -> &'a str {
+        match float_str {
             "inf" => "Infinity",
             "-inf" => "-Infinity",
-            _ => &self.float_value,
+            _ => float_str,
         }
     }
     fn hex_value_string(&self) -> String {
@@ -160,11 +160,15 @@ impl FloatHexResult {
         }
     }
     pub fn to_xml(&self) -> String {
-        // TODO refactor float_string_for_display() and use it here
         let c = self
             .coerced_float_value
             .as_ref()
-            .map(|f| format!("\n<coercedFloat></coercedFloat>"))
+            .map(|f| {
+                format!(
+                    "\n<coercedFloat>{}</coercedFloat>",
+                    Self::float_string_for_display(f)
+                )
+            })
             .unwrap_or("".to_string());
         format!(
             "<values>
@@ -172,7 +176,7 @@ impl FloatHexResult {
     <hex>{hex_value}</hex>{coerced_float_tag}
 </values>",
             float_key = self.float_kind.to_key_string(),
-            float_value = self.float_string_for_display(),
+            float_value = Self::float_string_for_display(&self.float_value),
             coerced_float_tag = c,
             hex_value = self.hex_value_string()
         )
@@ -251,11 +255,17 @@ fn handle_float32tohex(float_str: &str, swap: bool) -> FloatHexResult {
     }
     let float = float.unwrap();
     let hex_value = float32_to_hex(float, swap);
-    // TODO - see if need coerced_float_value
     FloatHexResult {
         float_kind: FloatKind::Float32,
         float_value: float_str.to_string(),
-        coerced_float_value: Some(float.to_string()),
+        // TODO ugggggggh
+        coerced_float_value: if FloatHexResult::float_string_for_display(float.to_string().as_str())
+            .eq_ignore_ascii_case(&FloatHexResult::float_string_for_display(float_str))
+        {
+            None
+        } else {
+            Some(FloatHexResult::float_string_for_display(float.to_string().as_str()).to_string())
+        },
         hex_value: hex_value.to_string(),
     }
 }
@@ -290,12 +300,16 @@ fn handle_float64tohex(float_str: &str, swap: bool) -> FloatHexResult {
             hex_value: "ERROR".to_string(),
         };
     }
-    let hex_value = float64_to_hex(float.unwrap(), swap);
-    // TODO
+    let float = float.unwrap();
+    let hex_value = float64_to_hex(float, swap);
     FloatHexResult {
         float_kind: FloatKind::Float64,
         float_value: float_str.to_string(),
-        coerced_float_value: None,
+        coerced_float_value: if &float.to_string() == float_str {
+            None
+        } else {
+            Some(float.to_string())
+        },
         hex_value: hex_value.to_string(),
     }
 }

@@ -70,11 +70,19 @@ fn assert_xml(
             3
         } else {
             2
-        }
+        },
+        "float_value = {} hex_value = {}, response = {}",
+        expected_float_value,
+        expected_hex_value,
+        response
     );
     assert_eq!(
         response_elem.children[0].as_element().unwrap().name,
-        expected_float_key
+        expected_float_key,
+        "float_value = {} hex_value = {}, response = {}",
+        expected_float_value,
+        expected_hex_value,
+        response
     );
     assert_eq!(
         response_elem.children[0]
@@ -82,7 +90,11 @@ fn assert_xml(
             .unwrap()
             .children
             .len(),
-        1
+        1,
+        "float_value = {} hex_value = {}, response = {}",
+        expected_float_value,
+        expected_hex_value,
+        response
     );
     // sigh, close enough
     assert_eq!(
@@ -92,7 +104,11 @@ fn assert_xml(
                 .unwrap(),
             47
         ),
-        take_at_most(expected_float_value, 47)
+        take_at_most(expected_float_value, 47),
+        "float_value = {} hex_value = {}, response = {}",
+        expected_float_value,
+        expected_hex_value,
+        response
     );
     assert_eq!(response_elem.children[1].as_element().unwrap().name, "hex");
     assert_eq!(
@@ -101,18 +117,30 @@ fn assert_xml(
             .unwrap()
             .children
             .len(),
-        1
+        1,
+        "float_value = {} hex_value = {}, response = {}",
+        expected_float_value,
+        expected_hex_value,
+        response
     );
     assert_eq!(
         response_elem.children[1].as_element().unwrap().children[0]
             .as_text()
             .unwrap(),
-        expected_hex_value
+        expected_hex_value,
+        "float_value = {} hex_value = {}, response = {}",
+        expected_float_value,
+        expected_hex_value,
+        response
     );
     if expected_coerced_float_value.is_some() {
         assert_eq!(
             response_elem.children[2].as_element().unwrap().name,
-            "coercedFloat"
+            "coercedFloat",
+            "float_value = {} hex_value = {}, response = {}",
+            expected_float_value,
+            expected_hex_value,
+            response
         );
         assert_eq!(
             response_elem.children[2]
@@ -120,14 +148,22 @@ fn assert_xml(
                 .unwrap()
                 .children
                 .len(),
-            1
+            1,
+            "float_value = {} hex_value = {}, response = {}",
+            expected_float_value,
+            expected_hex_value,
+            response
         );
         let expected_coerced_float_value: &str = expected_coerced_float_value.as_ref().unwrap();
         assert_eq!(
             response_elem.children[2].as_element().unwrap().children[0]
                 .as_text()
                 .unwrap(),
-            expected_coerced_float_value
+            expected_coerced_float_value,
+            "float_value = {} hex_value = {}, response = {}",
+            expected_float_value,
+            expected_hex_value,
+            response
         );
     }
 }
