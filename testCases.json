@@ -39,12 +39,13 @@
         "action": "floatToHex",
         "float": 1.401298464324817e-45,
         "hex": "0x00000001",
-        "coercedFloat": 0.000000000000000000000000000000000000000000001
+        "coercedFloat": "0.000000000000000000000000000000000000000000001"
     },
     {
         "action": "floatToHex",
         "float": -1.401298464324817e-45,
-        "hex": "0x80000001"
+        "hex": "0x80000001",
+        "coercedFloat": "-0.000000000000000000000000000000000000000000001"
     },
     {
         "action": "doubleToHex",
@@ -157,19 +158,19 @@
     {
         "action": "floatToHex",
         "float": 1.33333333333333,
-        "coercedFloat": 1.3333334,
+        "coercedFloat": "1.3333334",
         "hex": "0x3faaaaab"
     },
     {
         "action": "float16ToHex",
         "float16": 1.3333333333333333,
-        "coercedFloat": 1.3330078,
+        "coercedFloat": "1.3330078",
         "hex": "0x3d55"
     },
     {
         "action": "bfloat16ToHex",
         "bfloat16": 1.3333333333333333,
-        "coercedFloat": 1.3359375,
+        "coercedFloat": "1.3359375",
         "hex": "0x3fab"
     }
 ]

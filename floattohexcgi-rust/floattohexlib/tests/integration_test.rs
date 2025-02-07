@@ -37,7 +37,9 @@ fn get_testcases() -> &'static Vec<TestCase> {
             };
             let hex_value = item["hex"].as_str().unwrap();
             let note = item.get("note").map_or("", |v| v.as_str().unwrap());
-            let coerced_float_value = item.get("coercedFloat").map(|v| v.to_string());
+            let coerced_float_value = item
+                .get("coercedFloat")
+                .map(|v| v.as_str().unwrap().to_string());
             cases.push(TestCase {
                 action: action.to_lowercase().to_string(),
                 float_key: float_key.to_string(),
