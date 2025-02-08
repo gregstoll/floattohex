@@ -245,7 +245,7 @@ interface HexConverterState {
     flash: boolean
 }
 
-enum ConvertMode {
+export enum ConvertMode {
     HEX_TO_FLOATING,
     FLOATING_TO_HEX
 };
@@ -276,10 +276,11 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
         let xmlDoc = parser.parseFromString(s, "text/xml");
         return xmlDoc;
     }
-    showConvertResult(responseText: string, mode: ConvertMode) {
+    getConvertResultState(responseText: string, mode: ConvertMode)
+     : Pick<HexConverterState, "hexValue" | "floatingValue" | "calculatedHexValue" | "calculatedFloatingValue" | "coercedFromFloatingValue"> | null {
         let documentElement = this.parseXml(responseText).documentElement;
         if (documentElement === null) {
-            return;
+            return null;
         }
         let hexElem: Element = documentElement.getElementsByTagName("hex")[0];
         let hexValue: string = hexElem.childNodes[0].nodeValue || "";
@@ -303,15 +304,21 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
                 }
             }
         }
+        return {'hexValue': hexValue,
+                    'floatingValue': floatingValue,
+                    'calculatedHexValue': hexValue,
+                    'calculatedFloatingValue': floatingValue,
+                    'coercedFromFloatingValue': coercedFromFloatingValue};
+    }
+    showConvertResult(responseText: string, mode: ConvertMode) {
+        let newState = this.getConvertResultState(responseText, mode);
+        if (newState === null) {
+            return;
+        }
         this.setState((state, _props) => {
             // This is not great - it would be nicer to put in componentDidUpdate()
-            let isChange = hexValue !== state.calculatedHexValue || floatingValue !== state.calculatedFloatingValue;
-            return { 'hexValue': hexValue,
-                     'floatingValue': floatingValue,
-                     'calculatedHexValue': hexValue,
-                     'calculatedFloatingValue': floatingValue,
-                     'coercedFromFloatingValue': coercedFromFloatingValue,
-                     'flash': isChange };
+            let isChange = newState.hexValue !== state.calculatedHexValue || newState.floatingValue !== state.calculatedFloatingValue;
+            return { 'flash': isChange, ...newState };
         });
     }
     doConvert(query: string, mode: ConvertMode) {
