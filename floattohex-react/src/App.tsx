@@ -210,8 +210,8 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                     <tr>{binaryBreakdownTds}</tr>
                     <tr><td colSpan={3}>sign</td><td colSpan={1 + this.props.exponentBits - 3}>exponent</td><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>mantissa</td></tr>
                     {breakdownRows}
-                    {coercedFromTr}
                     <tr><td colSpan={this.props.hexDigits * 4}>{floatingValueDisplay}</td></tr>
+                    {coercedFromTr}
                 </tbody>
             </table>
         );
