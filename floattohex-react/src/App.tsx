@@ -15,6 +15,7 @@ declare global {
 export interface HexFloatBreakdownProps extends HexConverterProps {
     hexValue: string,
     floatingValue: string,
+    coercedFromFloatingValue: string,
     multiplier: string
 }
 
@@ -196,6 +197,10 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                 <td colSpan={1 + this.props.exponentBits - 3} dangerouslySetInnerHTML={this.getExponentExpression(bits, phase)} />
                 <td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>{this.getMantissaExpression(bits, phase)}</td></tr>);
         }
+        let coercedFromTr = null;
+        if (this.props.coercedFromFloatingValue) {
+            coercedFromTr = <tr><td colSpan={this.props.hexDigits * 4}>(coerced from {this.props.coercedFromFloatingValue})</td></tr>;
+        }
         return (
             <table className="hexFloat">
                 <tbody>
@@ -205,6 +210,7 @@ export class HexFloatBreakdown extends Component<HexFloatBreakdownProps, {}> {
                     <tr>{binaryBreakdownTds}</tr>
                     <tr><td colSpan={3}>sign</td><td colSpan={1 + this.props.exponentBits - 3}>exponent</td><td colSpan={this.props.hexDigits * 4 - (1 + this.props.exponentBits)}>mantissa</td></tr>
                     {breakdownRows}
+                    {coercedFromTr}
                     <tr><td colSpan={this.props.hexDigits * 4}>{floatingValueDisplay}</td></tr>
                 </tbody>
             </table>
@@ -234,6 +240,7 @@ interface HexConverterState {
     floatingValue: string,
     calculatedHexValue: string,
     calculatedFloatingValue: string,
+    coercedFromFloatingValue: string,
     multiplier: string,
     flash: boolean
 }
@@ -249,7 +256,7 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
         super(props);
 
         //console.log('HexConverter: ' + props);
-        this.state = { 'hexValue': "", 'floatingValue': '', 'calculatedHexValue': "", 'calculatedFloatingValue': "", 'multiplier': '1', flash: false };
+        this.state = { 'hexValue': "", 'floatingValue': '', 'calculatedHexValue': "", 'calculatedFloatingValue': "", 'coercedFromFloatingValue': "", 'multiplier': '1', flash: false };
         this.formStyle = {};
         if (props.marginTop) {
             this.formStyle['marginTop'] = props.marginTop + 'px';
@@ -281,16 +288,30 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
             hexValue = hexValue.substring(0, 2) + "0" + hexValue.substring(2);
         }
         let floatingValue : string = floatingElem.childNodes[0].nodeValue || "";
+        let coercedFromFloatingElem = documentElement.getElementsByTagName("coercedFloat").item(0);
+        let coercedFromFloatingRawValue : string = coercedFromFloatingElem?.childNodes[0]?.nodeValue || "";
+        let coercedFromFloatingValue = "";
         if (mode === ConvertMode.FLOATING_TO_HEX) {
             let parsedFloatValue = parseFloat(floatingValue);
             if (!isNaN(parsedFloatValue)) {
-                floatingValue = (parsedFloatValue / this.getNumericMultiplier()).toString();
+                let parsedCoercedFloatingValue = parseFloat(coercedFromFloatingRawValue);
+                if (!isNaN(parsedCoercedFloatingValue)) {
+                    floatingValue = (parsedCoercedFloatingValue / this.getNumericMultiplier()).toString();
+                    coercedFromFloatingValue = (parsedFloatValue / this.getNumericMultiplier()).toString();
+                } else {
+                    floatingValue = (parsedFloatValue / this.getNumericMultiplier()).toString();
+                }
             }
         }
         this.setState((state, _props) => {
             // This is not great - it would be nicer to put in componentDidUpdate()
             let isChange = hexValue !== state.calculatedHexValue || floatingValue !== state.calculatedFloatingValue;
-            return { 'hexValue': hexValue, 'floatingValue': floatingValue, 'calculatedHexValue': hexValue, 'calculatedFloatingValue': floatingValue, 'flash': isChange };
+            return { 'hexValue': hexValue,
+                     'floatingValue': floatingValue,
+                     'calculatedHexValue': hexValue,
+                     'calculatedFloatingValue': floatingValue,
+                     'coercedFromFloatingValue': coercedFromFloatingValue,
+                     'flash': isChange };
         });
     }
     doConvert(query: string, mode: ConvertMode) {
@@ -351,7 +372,12 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
                         <label>Hex value: <input type="text" value={this.displayHex(this.state.hexValue)} onChange={e => this.changeHexValue(e)} /></label>
                         <input type="button" value={'Convert to ' + this.props.floatType.toLowerCase()} onClick={() => this.convertToFloating()} />
                     </p>
-                    <HexFloatBreakdown hexValue={this.displayHex(this.state.calculatedHexValue)} floatingValue={this.state.calculatedFloatingValue} multiplier={this.state.multiplier} {...this.props} />
+                    <HexFloatBreakdown
+                        hexValue={this.displayHex(this.state.calculatedHexValue)}
+                        floatingValue={this.state.calculatedFloatingValue}
+                        coercedFromFloatingValue={this.state.coercedFromFloatingValue}
+                        multiplier={this.state.multiplier}
+                        {...this.props} />
                     <p>
                         <label>{this.props.floatType + ' value:'} <input type="text" value={this.state.floatingValue} onChange={e => this.changeFloatingValue(e)} /></label>
                         {multiplierSpan}<input type="button" value='Convert to hex' onClick={() => this.convertToHex()} />

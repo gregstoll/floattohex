@@ -23,6 +23,7 @@ function getHexFloatBreakdownProps(floatOrDouble: FloatOrDouble, hexValue: strin
     showExplanation: true,
     hexValue,
     floatingValue,
+    coercedFromFloatingValue: "",
     uppercaseLetters: false,
     ...floatingPointProps
   };
