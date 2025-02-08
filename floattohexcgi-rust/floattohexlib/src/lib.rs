@@ -128,15 +128,16 @@ impl FloatKind {
 struct FloatHexResult {
     float_kind: FloatKind,
     float_value: String,
+    coerced_float_value: Option<String>,
     hex_value: String,
 }
 
 impl FloatHexResult {
-    pub fn float_string_for_display(&self) -> &str {
-        match self.float_value.as_str() {
+    pub fn float_string_for_display<'a>(float_str: &'a str) -> &'a str {
+        match float_str {
             "inf" => "Infinity",
             "-inf" => "-Infinity",
-            _ => &self.float_value,
+            _ => float_str,
         }
     }
     fn hex_value_string(&self) -> String {
@@ -159,13 +160,24 @@ impl FloatHexResult {
         }
     }
     pub fn to_xml(&self) -> String {
+        let c = self
+            .coerced_float_value
+            .as_ref()
+            .map(|f| {
+                format!(
+                    "\n<coercedFloat>{}</coercedFloat>",
+                    Self::float_string_for_display(f)
+                )
+            })
+            .unwrap_or("".to_string());
         format!(
             "<values>
     <{float_key}>{float_value}</{float_key}>
-    <hex>{hex_value}</hex>
+    <hex>{hex_value}</hex>{coerced_float_tag}
 </values>",
             float_key = self.float_kind.to_key_string(),
-            float_value = self.float_string_for_display(),
+            float_value = Self::float_string_for_display(&self.float_value),
+            coerced_float_tag = c,
             hex_value = self.hex_value_string()
         )
     }
@@ -212,28 +224,33 @@ pub fn handle_cgi(action: &str, float_str: &str, hex_str: &str, swap: bool) -> S
 }
 
 fn clean_hex_str(hex_str: &str) -> String {
-    hex_str.to_lowercase().strip_prefix("0x").unwrap_or(hex_str).replace(" ", "")
+    hex_str
+        .to_lowercase()
+        .strip_prefix("0x")
+        .unwrap_or(hex_str)
+        .replace(" ", "")
 }
 
 fn parse_hex_u32(hex_str: &str) -> Result<u32, ParseIntError> {
-    u32::from_str_radix(
-        &clean_hex_str(hex_str),
-        16,
-    )
+    u32::from_str_radix(&clean_hex_str(hex_str), 16)
 }
 
 fn parse_hex_u64(hex_str: &str) -> Result<u64, ParseIntError> {
-    u64::from_str_radix(
-        &clean_hex_str(hex_str),
-        16,
-    )
+    u64::from_str_radix(&clean_hex_str(hex_str), 16)
 }
 
 fn parse_hex_u16(hex_str: &str) -> Result<u16, ParseIntError> {
-    u16::from_str_radix(
-        &clean_hex_str(hex_str),
-        16,
-    )
+    u16::from_str_radix(&clean_hex_str(hex_str), 16)
+}
+
+fn get_coerced_float_value(original_float: &str, parsed_float: String) -> Option<String> {
+    if FloatHexResult::float_string_for_display(&parsed_float)
+        .eq_ignore_ascii_case(&FloatHexResult::float_string_for_display(original_float))
+    {
+        None
+    } else {
+        Some(FloatHexResult::float_string_for_display(&parsed_float).to_string())
+    }
 }
 
 fn handle_float32tohex(float_str: &str, swap: bool) -> FloatHexResult {
@@ -242,13 +259,16 @@ fn handle_float32tohex(float_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float32,
             float_value: float_str.to_string(),
+            coerced_float_value: None,
             hex_value: "ERROR".to_string(),
         };
     }
-    let hex_value = float32_to_hex(float.unwrap(), swap);
+    let float = float.unwrap();
+    let hex_value = float32_to_hex(float, swap);
     FloatHexResult {
         float_kind: FloatKind::Float32,
         float_value: float_str.to_string(),
+        coerced_float_value: get_coerced_float_value(float_str, float.to_string()),
         hex_value: hex_value.to_string(),
     }
 }
@@ -259,6 +279,7 @@ fn handle_hextofloat32(hex_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float32,
             float_value: "ERROR".to_string(),
+            coerced_float_value: None,
             hex_value: hex_str.to_string(),
         };
     }
@@ -267,6 +288,7 @@ fn handle_hextofloat32(hex_str: &str, swap: bool) -> FloatHexResult {
     FloatHexResult {
         float_kind: FloatKind::Float32,
         float_value: float_value.to_string(),
+        coerced_float_value: None,
         hex_value: hex.to_string(),
     }
 }
@@ -277,13 +299,16 @@ fn handle_float64tohex(float_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float64,
             float_value: float_str.to_string(),
+            coerced_float_value: None,
             hex_value: "ERROR".to_string(),
         };
     }
-    let hex_value = float64_to_hex(float.unwrap(), swap);
+    let float = float.unwrap();
+    let hex_value = float64_to_hex(float, swap);
     FloatHexResult {
         float_kind: FloatKind::Float64,
         float_value: float_str.to_string(),
+        coerced_float_value: get_coerced_float_value(float_str, float.to_string()),
         hex_value: hex_value.to_string(),
     }
 }
@@ -294,6 +319,7 @@ fn handle_hextofloat64(hex_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float64,
             float_value: "ERROR".to_string(),
+            coerced_float_value: None,
             hex_value: hex_str.to_string(),
         };
     }
@@ -302,6 +328,7 @@ fn handle_hextofloat64(hex_str: &str, swap: bool) -> FloatHexResult {
     FloatHexResult {
         float_kind: FloatKind::Float64,
         float_value: float_value.to_string(),
+        coerced_float_value: None,
         hex_value: hex.to_string(),
     }
 }
@@ -312,13 +339,16 @@ fn handle_float16tohex(float_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float16,
             float_value: float_str.to_string(),
+            coerced_float_value: None,
             hex_value: "ERROR".to_string(),
         };
     }
-    let hex_value = float16_to_hex(float.unwrap(), swap);
+    let float = float.unwrap();
+    let hex_value = float16_to_hex(float, swap);
     FloatHexResult {
         float_kind: FloatKind::Float16,
         float_value: float_str.to_string(),
+        coerced_float_value: get_coerced_float_value(float_str, float.to_string()),
         hex_value: hex_value.to_string(),
     }
 }
@@ -329,6 +359,7 @@ fn handle_hextofloat16(hex_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::Float16,
             float_value: "ERROR".to_string(),
+            coerced_float_value: None,
             hex_value: hex_str.to_string(),
         };
     }
@@ -337,6 +368,7 @@ fn handle_hextofloat16(hex_str: &str, swap: bool) -> FloatHexResult {
     FloatHexResult {
         float_kind: FloatKind::Float16,
         float_value: float_value.to_string(),
+        coerced_float_value: None,
         hex_value: hex.to_string(),
     }
 }
@@ -347,13 +379,16 @@ fn handle_bfloat16tohex(float_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::BFloat16,
             float_value: float_str.to_string(),
+            coerced_float_value: None,
             hex_value: "ERROR".to_string(),
         };
     }
-    let hex_value = bfloat16_to_hex(float.unwrap(), swap);
+    let float = float.unwrap();
+    let hex_value = bfloat16_to_hex(float, swap);
     FloatHexResult {
         float_kind: FloatKind::BFloat16,
         float_value: float_str.to_string(),
+        coerced_float_value: get_coerced_float_value(float_str, float.to_string()),
         hex_value: hex_value.to_string(),
     }
 }
@@ -364,6 +399,7 @@ fn handle_hextobfloat16(hex_str: &str, swap: bool) -> FloatHexResult {
         return FloatHexResult {
             float_kind: FloatKind::BFloat16,
             float_value: "ERROR".to_string(),
+            coerced_float_value: None,
             hex_value: hex_str.to_string(),
         };
     }
@@ -372,6 +408,7 @@ fn handle_hextobfloat16(hex_str: &str, swap: bool) -> FloatHexResult {
     FloatHexResult {
         float_kind: FloatKind::BFloat16,
         float_value: float_value.to_string(),
+        coerced_float_value: None,
         hex_value: hex.to_string(),
     }
 }
