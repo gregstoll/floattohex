@@ -277,13 +277,13 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
         return xmlDoc;
     }
     getConvertResultState(responseText: string, mode: ConvertMode)
-     : Pick<HexConverterState, "hexValue" | "floatingValue" | "calculatedHexValue" | "calculatedFloatingValue" | "coercedFromFloatingValue"> | null {
+     : Omit<HexConverterState, "multiplier" | "flash"> | null {
         let documentElement = this.parseXml(responseText).documentElement;
         if (documentElement === null) {
             return null;
         }
         let hexElem: Element = documentElement.getElementsByTagName("hex")[0];
-        let hexValue: string = hexElem.childNodes[0].nodeValue || "";
+        let hexValue: string = hexElem?.childNodes[0]?.nodeValue || "";
         let floatingElem: Element = documentElement.getElementsByTagName(this.props.floatType.toLowerCase())[0];
         while (hexValue.length < this.props.hexDigits + 2) {
             hexValue = hexValue.substring(0, 2) + "0" + hexValue.substring(2);
@@ -316,9 +316,16 @@ export class HexConverter extends Component<HexConverterProps, HexConverterState
             return;
         }
         this.setState((state, _props) => {
+            // npm run build fails type checking without this, seems to be a bug
+            newState = newState!;
             // This is not great - it would be nicer to put in componentDidUpdate()
             let isChange = newState.hexValue !== state.calculatedHexValue || newState.floatingValue !== state.calculatedFloatingValue;
-            return { 'flash': isChange, ...newState };
+            // should be able to return { 'flash': isChange, ...newState};
+            // but npm run build fails type checking, seems to be a bug?
+            return { 'flash': isChange,
+                 "hexValue": newState.hexValue, "floatingValue": newState.floatingValue,
+                 "calculatedFloatingValue": newState.calculatedFloatingValue, "calculatedHexValue": newState.calculatedHexValue,
+                 "coercedFromFloatingValue": newState.coercedFromFloatingValue};
         });
     }
     doConvert(query: string, mode: ConvertMode) {
