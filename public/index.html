@@ -1,1 +1,90 @@
-../floattohex-react/build/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="msApplication-ID" content="57039gregstoll.com.FloattoHex" />
+    <meta name="msApplication-PackageFamilyName" content="57039gregstoll.com.FloattoHex_mrfc7nnpdd326" />
+    <link rel="canonical" href="https://gregstoll.com/~gregstoll/floattohex/" />
+    <!--#include virtual="/bootstraphead.html"-->
+    <title>Floating Point to Hex Converter</title>
+    <!-- based on https://rustwasm.github.io/docs/wasm-bindgen/examples/without-a-bundler.html -->
+    <!-- Note the usage of `type=module` here as this is an ES6 module -->
+    <script type="module">
+      // Use ES module import syntax to import functionality from the module
+      // that we have compiled.
+      //
+      // Note that the `default` import is an initialization function which
+      // will "boot" the module and make it ready to use. Currently browsers
+      // don't support natively imported WebAssembly as an ES module, but
+      // eventually the manual initialization won't be required!
+      import init, { hexfloatcgi } from './pkg/floattohexlib_bindgen.js';
+
+      async function run() {
+        // First up we need to actually load the Wasm file, so we use the
+        // default export to inform it where the Wasm file is located on the
+        // server, and then we wait on the returned promise to wait for the
+        // Wasm to be loaded.
+        //
+        // It may look like this: `await init('./pkg/without_a_bundler_bg.wasm');`,
+        // but there is also a handy default inside `init` function, which uses
+        // `import.meta` to locate the Wasm file relatively to js file.
+        //
+        // Note that instead of a string you can also pass in any of the
+        // following things:
+        //
+        // * `WebAssembly.Module`
+        //
+        // * `ArrayBuffer`
+        //
+        // * `Response`
+        //
+        // * `Promise` which returns any of the above, e.g. `fetch("./path/to/wasm")`
+        //
+        // This gives you complete control over how the module is loaded
+        // and compiled.
+        //
+        // Also note that the promise, when resolved, yields the Wasm module's
+        // exports which is the same as importing the `*_bg` module in other
+        // modes
+        await init();
+
+        // And afterwards we can use all the functionality defined in wasm.
+        /*const result = hexfloatcgi("action=floattohex&float=4.5&swap=0");
+        console.log(`${result}`);*/
+        // This makes it easier to call from App.tsx
+        window.hexfloatcgi = hexfloatcgi;
+      }
+
+      run();
+    </script>
+    <!--#include virtual="/bootstraphead.html"-->
+</head>
+<body>
+     <!--#include virtual="/navbar.html"-->
+    <div class="container">
+        <h1>Floating Point to Hex Converter</h1>
+        <script type="module" src="index.js"></script>
+
+        <div><label><input id="showDetails" type="checkbox" checked="">&nbsp;Show details</label>
+             <label><input id="flipEndianness" type="checkbox">&nbsp;Swap to use big-endian</label>
+             <label><input id="uppercaseLetters" type="checkbox">&nbsp;Uppercase letters in hex</label></div>
+        <hex-float-breakdown floatingPointType="float"
+             hexValue="0x40900000" floatingValue="4.5" coercedFromFloatingValue=""
+             ></hex-float-breakdown>
+
+        <p><a href="http://apps.microsoft.com/windows/app/float-to-hex/2539426c-b90d-47ef-b78c-b7f84c0829d5"><img src="DownloadWindows.png" title="Download from the Windows Store" alt="Download from the Windows Store"></a></p>
+        <h2>About this project</h2>
+        <p id="about">Just a handy way to convert and visualize floating-point numbers!</p>
+        <p>The source is available <a href="https://github.com/gregstoll/floattohex">on GitHub</a>.</p>
+        <p><a href="https://gregstoll.wordpress.com/2025/01/08/floating-point-to-hex-converter-now-supports-16-bit-floats-plus-i-rewrote-it-in-rust-and-webassembly/">Here's
+            a writeup of when this was rewritten in Rust</a> and support for 16-bit float types was added.</p>
+        <p>
+            <a href="https://en.wikipedia.org/wiki/IEEE_floating-point_standard">
+                Information about the IEEE 754 floating-point standard from Wikipedia
+            </a>
+        </p>
+
+        <!--#include virtual="/endOfBody.html"-->
+    </div>
+</body>
+</html>
