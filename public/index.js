@@ -66,6 +66,83 @@ NAME_TO_FLOATING_POINT_PARAM.set("bfloat16",
     }
 );
 
+class AppSettings extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+
+    connectedCallback() {
+        if (this.shadowRoot.childNodes.length) return;
+        this.shadowRoot.innerHTML = `
+                <div>
+                    <label><input id="showDetails" type="checkbox">Show details</label>
+                    &nbsp;
+                    <label><input id="swapBytes" type="checkbox">Swap to use big-endian</label>
+                    &nbsp;
+                    <label><input id="uppercaseLetters" type="checkbox">Uppercase letters in hex</label>
+                </div>
+                `;
+        // update() first so this doesn't trigger events, I guess?
+        this.update();
+        // TODO - do these trigger if these are set programmatically?
+        // TODO - oh, should these be using property values?
+        this.shadowRoot.getElementById("showDetails").addEventListener("change", () => {
+            this.dispatchEvent(new CustomEvent("settingChange", {
+                detail: {showDetails: this.getElementById("showDetails").value}
+            }));
+        });
+        this.shadowRoot.getElementById("swapBytes").addEventListener("change", () => {
+            this.dispatchEvent(new CustomEvent("settingChange", {
+                detail: {swapBytes: this.getElementById("swapBytes").value}
+            }));
+        });
+        this.shadowRoot.getElementById("uppercaseLetters").addEventListener("change", () => {
+            this.dispatchEvent(new CustomEvent("settingChange", {
+                detail: {uppercaseLetters: this.getElementById("uppercaseLetters").value}
+            }));
+        });
+    }
+
+    update() {
+        this.shadowRoot.getElementById("showDetails").checked = this.showDetails;
+        this.shadowRoot.getElementById("swapBytes").checked = this.swapBytes;
+        this.shadowRoot.getElementById("uppercaseLetters").checked = this.uppercaseLetters;
+    }
+
+    get showDetails() {
+        return !!this.getAttribute("showDetails");
+    }
+    set showDetails(value) {
+        if (value) {
+            this.setAttribute("showDetails", "true");
+        } else {
+            this.removeAttribute("showDetails");
+        }
+    }
+    get swapBytes() {
+        return !!this.getAttribute("swapBytes");
+    }
+    set swapBytes(value) {
+        if (value) {
+            this.setAttribute("swapBytes", "true");
+        } else {
+            this.removeAttribute("swapBytes");
+        }
+    }
+    get uppercaseLetters() {
+        return !!this.getAttribute("uppercaseLetters");
+    }
+    set uppercaseLetters(value) {
+        if (value) {
+            this.setAttribute("uppercaseLetters", "true");
+        } else {
+            this.removeAttribute("uppercaseLetters");
+        }
+    }
+}
+customElements.define("app-settings", AppSettings);
+
 class HexFloatBreakdown extends HTMLElement {
     /**
      * @type FloatingPointParams

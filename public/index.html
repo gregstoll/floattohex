@@ -65,9 +65,7 @@
         <h1>Floating Point to Hex Converter</h1>
         <script type="module" src="index.js"></script>
 
-        <div><label><input id="showDetails" type="checkbox" checked="">&nbsp;Show details</label>
-             <label><input id="flipEndianness" type="checkbox">&nbsp;Swap to use big-endian</label>
-             <label><input id="uppercaseLetters" type="checkbox">&nbsp;Uppercase letters in hex</label></div>
+        <app-settings showDetails="true"></app-settings>
         <hex-float-breakdown floatingPointType="float"
              hexValue="0x40900000" floatingValue="4.5" coercedFromFloatingValue=""
              ></hex-float-breakdown>
