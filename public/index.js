@@ -157,36 +157,6 @@ appTemplate.innerHTML = `
         <slot></slot>
     </div>`;
 
-class FloatToHexApp extends HTMLElement {
-    constructor() {
-        super();
-        this.attachShadow({ mode: 'open' });
-    }
-    connectedCallback() {
-        if (this.shadowRoot.childNodes.length) return;
-        this.shadowRoot.append(appTemplate.content.cloneNode(true));
-        this.shadowRoot.querySelector("app-settings").addEventListener("settingChange", e => {
-            let data = e.detail;
-            this.update();
-        });
-        this.update();
-    }
-    update() {
-        if (!this.shadowRoot.childNodes.length) return;
-        let appSettings = this.shadowRoot.querySelector("app-settings");
-        // TODO this will be another tag name, and only set
-        // stuff that changed or something
-        // Note that the stuff in slots isn't actually in the Shadow DOM,
-        // I guess?
-        for (let breakdown of this.querySelectorAll("hex-float-breakdown")) {
-            // TODOTODO this isn't calling HexFloatBreakdown's setter
-            breakdown.showAllDetails = appSettings.showDetails;
-        }
-    }
- 
-}
-customElements.define("float-to-hex-app", FloatToHexApp);
-
 class HexFloatBreakdown extends HTMLElement {
     /**
      * @type FloatingPointParams
@@ -199,7 +169,7 @@ class HexFloatBreakdown extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
     static get observedAttributes() {
-        return ["hexValue", "floatingValue", "coercedFromFloatingValue", "multiplier", "showAllDetails"];
+        return ["hexValue", "floatingValue", "coercedFromFloatingValue", "multiplier", "showAllDetailsAtt"];
     }
     attributeChangedCallback(_name, _oldValue, _newValue) {
         this.update();
@@ -234,16 +204,18 @@ class HexFloatBreakdown extends HTMLElement {
         this.shadowRoot.getElementById("hexFloatTable").style.display = "";
 
         // TODO
-        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + (this.showAllDetails ? " YES" : "NO");
+        // TODOTODO this also doesn't call the showAllDetails getter??
+        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + (this.showAllDetails ? " YES" : " NO");
     }
+
     get showAllDetails() {
-        return !!this.getAttribute("showAllDetails");
+        return !!this.getAttribute("showAllDetailsAtt");
     }
-    set showAllDetails(val) {
+    set showAllDetailsSet(val) {
         if (val) {
-            this.setAttribute("showAllDetails", "true");
+            this.setAttribute("showAllDetailsAtt", "true");
         } else {
-            this.removeAttribute("showAllDetails");
+            this.removeAttribute("showAllDetailsAtt");
         }
     }
 
@@ -265,3 +237,34 @@ class HexFloatBreakdown extends HTMLElement {
     }
 }
 customElements.define("hex-float-breakdown", HexFloatBreakdown);
+
+class FloatToHexApp extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+    connectedCallback() {
+        if (this.shadowRoot.childNodes.length) return;
+        this.shadowRoot.append(appTemplate.content.cloneNode(true));
+        this.shadowRoot.querySelector("app-settings").addEventListener("settingChange", e => {
+            let data = e.detail;
+            this.update();
+        });
+        this.update();
+    }
+    update() {
+        if (!this.shadowRoot.childNodes.length) return;
+        let appSettings = this.shadowRoot.querySelector("app-settings");
+        // TODO this will be another tag name, and only set
+        // stuff that changed or something
+        // Note that the stuff in slots isn't actually in the Shadow DOM,
+        // I guess?
+        for (let breakdown of this.querySelectorAll("hex-float-breakdown")) {
+            // TODOTODO this isn't calling HexFloatBreakdown's setter
+            breakdown.showAllDetailsSet = appSettings.showDetails;
+        }
+    }
+ 
+}
+customElements.define("float-to-hex-app", FloatToHexApp);
+
