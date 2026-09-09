@@ -88,18 +88,24 @@ class AppSettings extends HTMLElement {
         // TODO - do these trigger if these are set programmatically?
         // TODO - oh, should these be using property values?
         this.shadowRoot.getElementById("showDetails").addEventListener("change", () => {
+            let value = this.shadowRoot.getElementById("showDetails").checked;
+            this.showDetails = value;
             this.dispatchEvent(new CustomEvent("settingChange", {
-                detail: {showDetails: this.getElementById("showDetails").value}
+                detail: {showDetails: value}
             }));
         });
         this.shadowRoot.getElementById("swapBytes").addEventListener("change", () => {
+            let value = this.shadowRoot.getElementById("swapBytes").checked;
+            this.swapBytes = value;
             this.dispatchEvent(new CustomEvent("settingChange", {
-                detail: {swapBytes: this.getElementById("swapBytes").value}
+                detail: {swapBytes: value}
             }));
         });
         this.shadowRoot.getElementById("uppercaseLetters").addEventListener("change", () => {
+            let value = this.shadowRoot.getElementById("uppercaseLetters").checked;
+            this.uppercaseLetters = value;
             this.dispatchEvent(new CustomEvent("settingChange", {
-                detail: {uppercaseLetters: this.getElementById("uppercaseLetters").value}
+                detail: {uppercaseLetters: value}
             }));
         });
     }
@@ -143,14 +149,49 @@ class AppSettings extends HTMLElement {
 }
 customElements.define("app-settings", AppSettings);
 
+const appTemplate = document.createElement('template');
+appTemplate.innerHTML = `
+    <link rel="stylesheet" href="${import.meta.resolve('./index.css')}">
+    <div>
+        <app-settings showDetails="true"></app-settings>
+        <slot></slot>
+    </div>`;
+
+class FloatToHexApp extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+    connectedCallback() {
+        if (this.shadowRoot.childNodes.length) return;
+        this.shadowRoot.append(appTemplate.content.cloneNode(true));
+        this.shadowRoot.querySelector("app-settings").addEventListener("settingChange", e => {
+            let data = e.detail;
+            this.update();
+        });
+        this.update();
+    }
+    update() {
+        if (!this.shadowRoot.childNodes.length) return;
+        let appSettings = this.shadowRoot.querySelector("app-settings");
+        // TODO this will be another tag name, and only set
+        // stuff that changed or something
+        // Note that the stuff in slots isn't actually in the Shadow DOM,
+        // I guess?
+        for (let breakdown of this.querySelectorAll("hex-float-breakdown")) {
+            // TODOTODO this isn't calling HexFloatBreakdown's setter
+            breakdown.showDetails = appSettings.showDetails;
+        }
+    }
+ 
+}
+customElements.define("float-to-hex-app", FloatToHexApp);
+
 class HexFloatBreakdown extends HTMLElement {
     /**
      * @type FloatingPointParams
      */
     #params;
-    /**
-     * @param {string} paramsName
-     */
     constructor() {
         super();
         this.#params = NAME_TO_FLOATING_POINT_PARAM.get(this.getAttribute("floatingPointType"));
@@ -158,7 +199,7 @@ class HexFloatBreakdown extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
     static get observedAttributes() {
-        return ["hexValue", "floatingValue", "coercedFromFloatingValue", "multiplier"];
+        return ["hexValue", "floatingValue", "coercedFromFloatingValue", "multiplier", "showDetails"];
     }
     attributeChangedCallback(_name, _oldValue, _newValue) {
         this.update();
@@ -192,7 +233,18 @@ class HexFloatBreakdown extends HTMLElement {
         }
         this.shadowRoot.getElementById("hexFloatTable").style.display = "";
 
-        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue;
+        // TODO
+        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + (this.showDetails ? " YES" : "NO");
+    }
+    get showDetails() {
+        return !!this.getAttribute("showDetails");
+    }
+    set showDetails(value) {
+        if (value) {
+            this.setAttribute("showDetails", "true");
+        } else {
+            this.removeAttribute("showDetails");
+        }
     }
 
     get hexValue() {
