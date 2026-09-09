@@ -180,7 +180,7 @@ class FloatToHexApp extends HTMLElement {
         // I guess?
         for (let breakdown of this.querySelectorAll("hex-float-breakdown")) {
             // TODOTODO this isn't calling HexFloatBreakdown's setter
-            breakdown.showDetails = appSettings.showDetails;
+            breakdown.showAllDetails = appSettings.showDetails;
         }
     }
  
@@ -199,7 +199,7 @@ class HexFloatBreakdown extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
     static get observedAttributes() {
-        return ["hexValue", "floatingValue", "coercedFromFloatingValue", "multiplier", "showDetails"];
+        return ["hexValue", "floatingValue", "coercedFromFloatingValue", "multiplier", "showAllDetails"];
     }
     attributeChangedCallback(_name, _oldValue, _newValue) {
         this.update();
@@ -234,16 +234,16 @@ class HexFloatBreakdown extends HTMLElement {
         this.shadowRoot.getElementById("hexFloatTable").style.display = "";
 
         // TODO
-        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + (this.showDetails ? " YES" : "NO");
+        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + (this.showAllDetails ? " YES" : "NO");
     }
-    get showDetails() {
-        return !!this.getAttribute("showDetails");
+    get showAllDetails() {
+        return !!this.getAttribute("showAllDetails");
     }
-    set showDetails(value) {
-        if (value) {
-            this.setAttribute("showDetails", "true");
+    set showAllDetails(val) {
+        if (val) {
+            this.setAttribute("showAllDetails", "true");
         } else {
-            this.removeAttribute("showDetails");
+            this.removeAttribute("showAllDetails");
         }
     }
 
