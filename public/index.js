@@ -161,7 +161,7 @@ class HexFloatBreakdown extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
     static get observedAttributes() {
-        return ["hexValue", "floatingValue", "coercedFromFloatingValue", "multiplier", "showAllDetailsAtt"];
+        return ["hexvalue", "floatingvalue", "coercedfromfloatingvalue", "multiplier", "showalldetails"];
     }
     attributeChangedCallback(_name, _oldValue, _newValue) {
         // TODO only if oldValue !== newValue?
@@ -197,29 +197,28 @@ class HexFloatBreakdown extends HTMLElement {
         this.shadowRoot.getElementById("hexFloatTable").style.display = "";
 
         // TODO
-        // TODOTODO this also doesn't call the showAllDetails getter??
         this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + (this.showAllDetails ? " YES" : " NO");
     }
 
     get showAllDetails() {
-        return !!this.getAttribute("showAllDetailsAtt");
+        return !!this.getAttribute("showalldetails");
     }
-    set showAllDetailsSet(val) {
+    set showAllDetails(val) {
         if (val) {
-            this.setAttribute("showAllDetailsAtt", "true");
+            this.setAttribute("showalldetails", "true");
         } else {
-            this.removeAttribute("showAllDetailsAtt");
+            this.removeAttribute("showalldetails");
         }
     }
 
     get hexValue() {
-        return this.getAttribute("hexValue");
+        return this.getAttribute("hexvalue");
     }
     get floatingValue() {
-        return this.getAttribute("floatingValue");
+        return this.getAttribute("floatingvalue");
     }
     get coercedFromFloatingPointValue() {
-        return this.getAttribute("coercedFromFloatingPointValue");
+        return this.getAttribute("coercedfromfloatingpointvalue");
     }
     get multiplier() {
         let num = parseFloat(this.getAttribute("multiplier"));
@@ -242,8 +241,8 @@ class FloatToHexApp extends HTMLElement {
             <link rel="stylesheet" href="${import.meta.resolve('./index.css')}">
             <div>
                 <app-settings showDetails="true"></app-settings>
-                <hex-float-breakdown floatingPointType="float"
-                    hexValue="0x40900000" floatingValue="4.5" coercedFromFloatingValue="">
+                <hex-float-breakdown floatingpointtype="float"
+                    hexvalue="0x40900000" floatingvalue="4.5" coercedfromfloatingvalue="">
                 </hex-float-breakdown>
             </div>`;
         this.shadowRoot.querySelector("app-settings").addEventListener("settingChange", e => {
@@ -258,8 +257,7 @@ class FloatToHexApp extends HTMLElement {
         // TODO this will be another tag name, and only set
         // stuff that changed or something
         for (let breakdown of this.shadowRoot.querySelectorAll("hex-float-breakdown")) {
-            // TODOTODO this isn't calling HexFloatBreakdown's setter
-            breakdown.showAllDetailsSet = appSettings.showDetails;
+            breakdown.showAllDetails = appSettings.showDetails;
         }
     }
  
