@@ -149,14 +149,6 @@ class AppSettings extends HTMLElement {
 }
 customElements.define("app-settings", AppSettings);
 
-const appTemplate = document.createElement('template');
-appTemplate.innerHTML = `
-    <link rel="stylesheet" href="${import.meta.resolve('./index.css')}">
-    <div>
-        <app-settings showDetails="true"></app-settings>
-        <slot></slot>
-    </div>`;
-
 class HexFloatBreakdown extends HTMLElement {
     /**
      * @type FloatingPointParams
@@ -172,6 +164,7 @@ class HexFloatBreakdown extends HTMLElement {
         return ["hexValue", "floatingValue", "coercedFromFloatingValue", "multiplier", "showAllDetailsAtt"];
     }
     attributeChangedCallback(_name, _oldValue, _newValue) {
+        // TODO only if oldValue !== newValue?
         this.update();
     }
     connectedCallback() {
@@ -245,7 +238,14 @@ class FloatToHexApp extends HTMLElement {
     }
     connectedCallback() {
         if (this.shadowRoot.childNodes.length) return;
-        this.shadowRoot.append(appTemplate.content.cloneNode(true));
+        this.shadowRoot.innerHTML = `
+            <link rel="stylesheet" href="${import.meta.resolve('./index.css')}">
+            <div>
+                <app-settings showDetails="true"></app-settings>
+                <hex-float-breakdown floatingPointType="float"
+                    hexValue="0x40900000" floatingValue="4.5" coercedFromFloatingValue="">
+                </hex-float-breakdown>
+            </div>`;
         this.shadowRoot.querySelector("app-settings").addEventListener("settingChange", e => {
             let data = e.detail;
             this.update();
@@ -257,9 +257,7 @@ class FloatToHexApp extends HTMLElement {
         let appSettings = this.shadowRoot.querySelector("app-settings");
         // TODO this will be another tag name, and only set
         // stuff that changed or something
-        // Note that the stuff in slots isn't actually in the Shadow DOM,
-        // I guess?
-        for (let breakdown of this.querySelectorAll("hex-float-breakdown")) {
+        for (let breakdown of this.shadowRoot.querySelectorAll("hex-float-breakdown")) {
             // TODOTODO this isn't calling HexFloatBreakdown's setter
             breakdown.showAllDetailsSet = appSettings.showDetails;
         }
@@ -267,4 +265,3 @@ class FloatToHexApp extends HTMLElement {
  
 }
 customElements.define("float-to-hex-app", FloatToHexApp);
-
