@@ -161,7 +161,7 @@ class HexFloatBreakdown extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
     static get observedAttributes() {
-        return ["hexvalue", "floatingvalue", "coercedfromfloatingvalue", "multiplier", "showalldetails"];
+        return ["hexvalue", "floatingvalue", "coercedfromfloatingvalue", "multiplier", "showalldetails", "flipendianness", "uppercaseletters"];
     }
     attributeChangedCallback(_name, _oldValue, _newValue) {
         // TODO only if oldValue !== newValue?
@@ -169,13 +169,25 @@ class HexFloatBreakdown extends HTMLElement {
     }
     connectedCallback() {
         if (this.shadowRoot.childNodes.length) return;
+        //let hexDigitsTds = '<td colspan="4"></td>'.repeat(this.#params.hexDigits);
+        let hexDigitsTds = [];
+        for (let i = 0; i < this.#params.hexDigits; i++) {
+            hexDigitsTds.push(`<td colspan="4" class="hexDigitCollapsed ${this.classNameFromBitIndex(4*i)}"></td>`);
+        }
+
+        let bits = this.getBits();
+        let binaryDigitsTds = [];
+        for (let i = 0; i < bits.length; ++i) {
+            binaryDigitsTds.push(`<td class="binaryDigit ${this.classNameFromBitIndex(i)}"></td>`);
+        }
+ 
         this.shadowRoot.innerHTML = `
             <link rel="stylesheet" href="index.css">
             <table id="hexFloatTable" class="hexFloat">
                 <tbody>
                     <tr><td id="hexTd" colSpan="${this.#params.hexDigits * 4}">{hexValueToUse}{flippedDescription}</td></tr>
-                    <tr>{hexDigitsTds}</tr>
-                    <tr>{binaryDigitsTds}</tr>
+                    <tr id="hexDigitsTr">${hexDigitsTds.join('')}</tr>
+                    <tr id="binaryDigitsTr">${binaryDigitsTds.join('')}</tr>
                     <tr>{binaryBreakdownTds}</tr>
                     <tr><td colSpan="3">sign</td><td colSpan="${1 + this.#params.exponentBits - 3}">exponent</td><td colSpan="${this.#params.hexDigits * 4 - (1 + this.#params.exponentBits)}">mantissa</td></tr>
                     {breakdownRows}
@@ -185,6 +197,57 @@ class HexFloatBreakdown extends HTMLElement {
             </table>`;
         this.update();
     }
+    getHexValueToUse() {
+        let hexValueToUse = this.hexValue;
+        if (this.flipEndianness) {
+            hexValueToUse = this.flipHexString(hexValueToUse, this.#params.hexDigits);
+        }
+        return hexValueToUse;
+    }
+    /**
+     * 
+     * @param {string} hexValue 
+     * @param {number} hexDigits 
+     * @returns {string}
+     */
+    flipHexString(hexValue, hexDigits) {
+        let h = hexValue.substring(0, 2);
+        for (let i = 0; i < hexDigits; ++i) {
+            let start = 2 + (hexDigits - 1 - i) * 2;
+            h += hexValue.substring(start, start + 2);
+        }
+        return h;
+    }
+    /**
+     * 
+     * @param {number} index 
+     * @returns {string}
+     */
+    classNameFromBitIndex(index) {
+        return "bitGroup " + ((Math.floor(index / 4) % 2 === 0) ? "even" : "odd");
+    }
+    /**
+     * 
+     * @returns {string[]}
+     */
+    getBits() {
+        /**
+         * @type {string[]}
+         */
+        let bits = [];
+        let hexValueToUse = this.getHexValueToUse();
+        for (let i = 0; i < this.#params.hexDigits; ++i) {
+            let binaryString = parseInt(hexValueToUse[2+i], 16).toString(2);
+            while (binaryString.length < 4) {
+                binaryString = "0" + binaryString;
+            }
+            for (let j = 0; j < 4; ++j) {
+                bits.push(binaryString[j]);
+            }
+        }
+        return bits;
+    }
+ 
     update() {
         if (!this.shadowRoot.childNodes.length) return;
         if (this.hexValue === '' || this.hexValue === 'ERROR'
@@ -196,8 +259,19 @@ class HexFloatBreakdown extends HTMLElement {
         }
         this.shadowRoot.getElementById("hexFloatTable").style.display = "";
 
-        // TODO
-        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + (this.showAllDetails ? " YES" : " NO");
+        let hexValueToUse = this.getHexValueToUse();
+        let hexDigitsTds = this.shadowRoot.getElementById("hexDigitsTr").children;
+        for (let i = 0; i < this.#params.hexDigits; i++) {
+            hexDigitsTds[i].innerText = hexValueToUse[2 + i];
+        }
+        let binaryDigitsTds = this.shadowRoot.getElementById("binaryDigitsTr").children;
+        let bits = this.getBits();
+        for (let i = 0; i < bits.length; i++) {
+            binaryDigitsTds[i].innerText = bits[i];
+        }
+
+        // TODO?
+        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue; // + (this.showAllDetails ? " YES" : " NO") + " " + (this.flipEndianness ? "YES" : "NO") + " " + (this.uppercaseLetters ? "YES" : "NO");
     }
 
     get showAllDetails() {
@@ -208,6 +282,26 @@ class HexFloatBreakdown extends HTMLElement {
             this.setAttribute("showalldetails", "true");
         } else {
             this.removeAttribute("showalldetails");
+        }
+    }
+    get flipEndianness() {
+        return !!this.getAttribute("flipendianness");
+    }
+    set flipEndianness(val) {
+        if (val) {
+            this.setAttribute("flipendianness", "true");
+        } else {
+            this.removeAttribute("flipendianness");
+        }
+    }
+    get uppercaseLetters() {
+        return !!this.getAttribute("uppercaseletters");
+    }
+    set uppercaseLetters(val) {
+        if (val) {
+            this.setAttribute("uppercaseletters", "true");
+        } else {
+            this.removeAttribute("uppercaseletters");
         }
     }
 
@@ -261,6 +355,8 @@ class FloatToHexApp extends HTMLElement {
         // I guess?
         for (let breakdown of this.querySelectorAll("hex-float-breakdown")) {
             breakdown.showAllDetails = appSettings.showDetails;
+            breakdown.flipEndianness = appSettings.swapBytes;
+            breakdown.uppercaseLetters = appSettings.uppercaseLetters;
         }
     }
  
