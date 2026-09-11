@@ -230,6 +230,14 @@ class HexFloatBreakdown extends HTMLElement {
 }
 customElements.define("hex-float-breakdown", HexFloatBreakdown);
 
+const appTemplate = document.createElement('template');
+appTemplate.innerHTML = `
+    <link rel="stylesheet" href="${import.meta.resolve('./index.css')}">
+    <div>
+        <app-settings showDetails="true"></app-settings>
+        <slot></slot>
+    </div>`;
+
 class FloatToHexApp extends HTMLElement {
     constructor() {
         super();
@@ -237,14 +245,7 @@ class FloatToHexApp extends HTMLElement {
     }
     connectedCallback() {
         if (this.shadowRoot.childNodes.length) return;
-        this.shadowRoot.innerHTML = `
-            <link rel="stylesheet" href="${import.meta.resolve('./index.css')}">
-            <div>
-                <app-settings showDetails="true"></app-settings>
-                <hex-float-breakdown floatingpointtype="float"
-                    hexvalue="0x40900000" floatingvalue="4.5" coercedfromfloatingvalue="">
-                </hex-float-breakdown>
-            </div>`;
+        this.shadowRoot.append(appTemplate.content.cloneNode(true));
         this.shadowRoot.querySelector("app-settings").addEventListener("settingChange", e => {
             let data = e.detail;
             this.update();
@@ -256,7 +257,9 @@ class FloatToHexApp extends HTMLElement {
         let appSettings = this.shadowRoot.querySelector("app-settings");
         // TODO this will be another tag name, and only set
         // stuff that changed or something
-        for (let breakdown of this.shadowRoot.querySelectorAll("hex-float-breakdown")) {
+        // Note that the stuff in slots isn't actually in the Shadow DOM,
+        // I guess?
+        for (let breakdown of this.querySelectorAll("hex-float-breakdown")) {
             breakdown.showAllDetails = appSettings.showDetails;
         }
     }
