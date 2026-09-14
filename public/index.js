@@ -169,7 +169,6 @@ class HexFloatBreakdown extends HTMLElement {
     }
     connectedCallback() {
         if (this.shadowRoot.childNodes.length) return;
-        //let hexDigitsTds = '<td colspan="4"></td>'.repeat(this.#params.hexDigits);
         let hexDigitsTds = [];
         for (let i = 0; i < this.#params.hexDigits; i++) {
             hexDigitsTds.push(`<td colspan="4" class="hexDigitCollapsed ${this.classNameFromBitIndex(4*i)}"></td>`);
@@ -180,7 +179,12 @@ class HexFloatBreakdown extends HTMLElement {
         for (let i = 0; i < bits.length; ++i) {
             binaryDigitsTds.push(`<td class="binaryDigit ${this.classNameFromBitIndex(i)}"></td>`);
         }
- 
+
+        let binaryBreakdownTds = [];
+        binaryBreakdownTds.push(`<td class="binaryBreakdown sign ${this.classNameFromBitIndex(0)}"></td>`);
+        binaryBreakdownTds.push(`<td class="binaryBreakdown exponent" colSpan=${this.#params.exponentBits}></td>`);
+        binaryBreakdownTds.push(`<td class="binaryBreakdown fraction" colSpan=${this.#params.fractionBits}></td>`);
+
         this.shadowRoot.innerHTML = `
             <link rel="stylesheet" href="index.css">
             <table id="hexFloatTable" class="hexFloat">
@@ -188,7 +192,7 @@ class HexFloatBreakdown extends HTMLElement {
                     <tr><td id="hexTd" colSpan="${this.#params.hexDigits * 4}">{hexValueToUse}{flippedDescription}</td></tr>
                     <tr id="hexDigitsTr">${hexDigitsTds.join('')}</tr>
                     <tr id="binaryDigitsTr">${binaryDigitsTds.join('')}</tr>
-                    <tr>{binaryBreakdownTds}</tr>
+                    <tr id="binaryBreakdownTr">${binaryBreakdownTds.join('')}</tr>
                     <tr><td colSpan="3">sign</td><td colSpan="${1 + this.#params.exponentBits - 3}">exponent</td><td colSpan="${this.#params.hexDigits * 4 - (1 + this.#params.exponentBits)}">mantissa</td></tr>
                     {breakdownRows}
                     <tr><td colSpan="${this.#params.hexDigits * 4}">{floatingValueDisplay}</td></tr>
@@ -247,7 +251,49 @@ class HexFloatBreakdown extends HTMLElement {
         }
         return bits;
     }
- 
+    /**
+     * 
+     * @param {string[]} bits 
+     * @returns {string[]}
+     */
+    getExponentBits(bits) {
+        return bits.slice(1, 1 + this.#params.exponentBits);
+    }
+    /**
+     * 
+     * @param {string[]} bits 
+     * @returns {string[]}
+     */
+    getMantissaBits(bits) {
+        return bits.slice(1 + this.#params.exponentBits);
+    }
+    /**
+     * 
+     * @param {string[]} bits 
+     * @param {number} startingIndex 
+     * @returns {string}
+     */
+    wrapBitsInClassName(bits, startingIndex) {
+        let spans = [];
+        let curSpanText = bits[0];
+        let curClassName = this.classNameFromBitIndex(startingIndex);
+        for (let i = 1; i < bits.length; ++i) {
+            let newClassName = this.classNameFromBitIndex(startingIndex + i);
+            if (curClassName === newClassName) {
+                // accumulate
+                curSpanText += bits[i];
+            }
+            else {
+                // new span
+                spans.push(`<span class="${curClassName}">${curSpanText}</span>`);
+                curClassName = newClassName;
+                curSpanText = bits[i];
+            }
+        }
+        spans.push(`<span class="${curClassName}">${curSpanText}</span>`);
+        return spans.join('');
+    }
+
     update() {
         if (!this.shadowRoot.childNodes.length) return;
         if (this.hexValue === '' || this.hexValue === 'ERROR'
@@ -269,6 +315,10 @@ class HexFloatBreakdown extends HTMLElement {
         for (let i = 0; i < bits.length; i++) {
             binaryDigitsTds[i].innerText = bits[i];
         }
+        let binaryBreakdownTds = this.shadowRoot.getElementById("binaryBreakdownTr").children;
+        binaryBreakdownTds[0].innerText = bits[0];
+        binaryBreakdownTds[1].innerHTML = this.wrapBitsInClassName(this.getExponentBits(bits), 1);
+        binaryBreakdownTds[2].innerHTML = this.wrapBitsInClassName(this.getMantissaBits(bits), 1 + this.#params.exponentBits);
 
         // TODO?
         this.shadowRoot.getElementById("hexTd").innerText = this.hexValue; // + (this.showAllDetails ? " YES" : " NO") + " " + (this.flipEndianness ? "YES" : "NO") + " " + (this.uppercaseLetters ? "YES" : "NO");
