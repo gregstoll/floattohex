@@ -77,9 +77,9 @@ class AppSettings extends HTMLElement {
         this.shadowRoot.innerHTML = `
                 <div>
                     <label><input id="showDetails" type="checkbox">Show details</label>
-                    &nbsp;
-                    <label><input id="swapBytes" type="checkbox">Swap to use big-endian</label>
-                    &nbsp;
+                    <!-- &nbsp;
+                      <label><input id="swapBytes" type="checkbox">Swap to use big-endian</label>
+                    &nbsp; -->
                     <label><input id="uppercaseLetters" type="checkbox">Uppercase letters in hex</label>
                 </div>
                 `;
@@ -94,13 +94,13 @@ class AppSettings extends HTMLElement {
                 detail: {showDetails: value}
             }));
         });
-        this.shadowRoot.getElementById("swapBytes").addEventListener("change", () => {
+        /*this.shadowRoot.getElementById("swapBytes").addEventListener("change", () => {
             let value = this.shadowRoot.getElementById("swapBytes").checked;
             this.swapBytes = value;
             this.dispatchEvent(new CustomEvent("settingChange", {
                 detail: {swapBytes: value}
             }));
-        });
+        });*/
         this.shadowRoot.getElementById("uppercaseLetters").addEventListener("change", () => {
             let value = this.shadowRoot.getElementById("uppercaseLetters").checked;
             this.uppercaseLetters = value;
@@ -112,7 +112,7 @@ class AppSettings extends HTMLElement {
 
     update() {
         this.shadowRoot.getElementById("showDetails").checked = this.showDetails;
-        this.shadowRoot.getElementById("swapBytes").checked = this.swapBytes;
+        //this.shadowRoot.getElementById("swapBytes").checked = this.swapBytes;
         this.shadowRoot.getElementById("uppercaseLetters").checked = this.uppercaseLetters;
     }
 
@@ -185,6 +185,14 @@ class HexFloatBreakdown extends HTMLElement {
         binaryBreakdownTds.push(`<td class="binaryBreakdown exponent" colSpan=${this.#params.exponentBits}></td>`);
         binaryBreakdownTds.push(`<td class="binaryBreakdown fraction" colSpan=${this.#params.fractionBits}></td>`);
 
+        let breakdownRows = [];
+        for (let phase of [BreakdownPhase.RAW_BITS, BreakdownPhase.INTERMEDIATE, BreakdownPhase.FLOAT_VALUES]) {
+            breakdownRows.push(`<tr id="breakdownRow${phase.toString()}">
+                <td colSpan="3"></td>
+                <td colSpan="${1 + this.#params.exponentBits - 3}"></td>
+                <td colSpan="${this.#params.hexDigits * 4 - (1 + this.#params.exponentBits)}"></td></tr>`);
+        }
+
         this.shadowRoot.innerHTML = `
             <link rel="stylesheet" href="index.css">
             <table id="hexFloatTable" class="hexFloat">
@@ -194,9 +202,9 @@ class HexFloatBreakdown extends HTMLElement {
                     <tr id="binaryDigitsTr">${binaryDigitsTds.join('')}</tr>
                     <tr id="binaryBreakdownTr">${binaryBreakdownTds.join('')}</tr>
                     <tr><td colSpan="3">sign</td><td colSpan="${1 + this.#params.exponentBits - 3}">exponent</td><td colSpan="${this.#params.hexDigits * 4 - (1 + this.#params.exponentBits)}">mantissa</td></tr>
-                    {breakdownRows}
-                    <tr><td colSpan="${this.#params.hexDigits * 4}">{floatingValueDisplay}</td></tr>
-                    {coercedFromTr}
+                    ${breakdownRows.join('\n')}
+                    <tr><td id="floatingValueDisplay" colSpan="${this.#params.hexDigits * 4}"></td></tr>
+                    <tr id="coercedFromTr"><td colSpan="${this.#params.hexDigits * 4}"></td></tr>
                 </tbody>
             </table>`;
         this.update();
@@ -293,6 +301,121 @@ class HexFloatBreakdown extends HTMLElement {
         spans.push(`<span class="${curClassName}">${curSpanText}</span>`);
         return spans.join('');
     }
+    /**
+     * 
+     * @param {string[]} bits 
+     * @returns {boolean}
+     */
+    getIsDenormalizedZeros(bits) {
+        return this.getExponentBits(bits).reduce((pre, cur) => (pre && (cur === "0")), true);
+    }
+    /**
+     * 
+     * @param {string[]} bits 
+     * @returns {boolean}
+     */
+    getIsDenormalizedOnes(bits) {
+        return this.getExponentBits(bits).reduce((pre, cur) => pre && (cur === "1"), true);
+    }
+
+    /**
+     * 
+     * @param {string[]} bits 
+     * @param {BreakdownPhase} phase 
+     * @returns 
+     */
+    getSignExpression(bits, phase) {
+        let bit = bits[0];
+        let one = bit === "1" ? "-1" : "+1";
+        if (phase !== BreakdownPhase.RAW_BITS) {
+            one += " *";
+        }
+        return one;
+    }
+    /**
+     * 
+     * @param {string[]} bits 
+     * @param {BreakdownPhase} phase 
+     * @returns {string}
+     */
+    getExponentExpression(bits, phase) {
+        let expressionBits = this.getExponentBits(bits).join('');
+        let exponent = parseInt(expressionBits, 2);
+        const denormalizedZeros = this.getIsDenormalizedZeros(bits);
+        const denormalizedOnes = this.getIsDenormalizedOnes(bits);
+        switch (phase) {
+            case BreakdownPhase.RAW_BITS: {
+                if (denormalizedZeros) {
+                    return exponent + ' <b>subnormal</b>';
+                }
+                else if (denormalizedOnes) {
+                    return exponent + ' <b>special</b>';
+                }
+                return exponent + "";
+            }
+            case BreakdownPhase.INTERMEDIATE: {
+                if (denormalizedZeros) {
+                    return "2^" + (1 - this.#params.exponentBias) + " *";
+                }
+                else if (denormalizedOnes) {
+                    return "";
+                }
+                return "2^(" + exponent + " - " + this.#params.exponentBias + ") *";
+            }
+            case BreakdownPhase.FLOAT_VALUES: {
+                if (denormalizedOnes) {
+                    return "";
+                }
+                let power = exponent - this.#params.exponentBias;
+                if (denormalizedZeros) {
+                    power = 1 - this.#params.exponentBias;
+                }
+                //return Math.round10(Math.pow(2, power), -1 * this.#params.decimalPrecision) + " *";
+                return Math.pow(2, power).toPrecision(this.#params.decimalPrecision) + " *";
+            }
+        }
+    }
+    /**
+     * 
+     * @param {string[]} bits 
+     * @param {BreakdownPhase} phase 
+     * @returns {string}
+     */
+    getMantissaExpression(bits, phase) {
+        let expressionBits = this.getMantissaBits(bits).join('');
+        if (this.getIsDenormalizedOnes(bits)) {
+            let mantissaAllZeros = this.getMantissaBits(bits).reduce((pre, cur) => pre && (cur === "0"), true);
+            if (mantissaAllZeros) {
+                return "Infinity (since all zeros)";
+            }
+            else {
+                return "NaN (since non-zero)";
+            }
+        }
+        let leadingDigit = this.getIsDenormalizedZeros(bits) ? 0 : 1;
+        if (phase === BreakdownPhase.RAW_BITS) {
+            return leadingDigit + "." + expressionBits + " (binary)";
+        }
+        // can't parse float in base 2 :-(
+        let value = parseInt(expressionBits, 2) / Math.pow(2, this.#params.fractionBits);
+        return leadingDigit + value;
+    }
+    /**
+     * 
+     * @param {string[]} bits 
+     * @returns {string[]}
+     */
+    getExponentBits(bits) {
+        return bits.slice(1, 1 + this.#params.exponentBits);
+    }
+    /**
+     * 
+     * @param {string[]} bits 
+     * @returns {string[]}
+     */
+    getMantissaBits(bits) {
+        return bits.slice(1 + this.#params.exponentBits);
+    }
 
     update() {
         if (!this.shadowRoot.childNodes.length) return;
@@ -304,6 +427,9 @@ class HexFloatBreakdown extends HTMLElement {
             return;
         }
         this.shadowRoot.getElementById("hexFloatTable").style.display = "";
+
+        let flippedDescription = this.flipEndianness ? ' (swapped endianness)' : '';
+        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + flippedDescription;
 
         let hexValueToUse = this.getHexValueToUse();
         let hexDigitsTds = this.shadowRoot.getElementById("hexDigitsTr").children;
@@ -320,8 +446,29 @@ class HexFloatBreakdown extends HTMLElement {
         binaryBreakdownTds[1].innerHTML = this.wrapBitsInClassName(this.getExponentBits(bits), 1);
         binaryBreakdownTds[2].innerHTML = this.wrapBitsInClassName(this.getMantissaBits(bits), 1 + this.#params.exponentBits);
 
-        // TODO?
-        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue; // + (this.showAllDetails ? " YES" : " NO") + " " + (this.flipEndianness ? "YES" : "NO") + " " + (this.uppercaseLetters ? "YES" : "NO");
+        for (let phase of [BreakdownPhase.RAW_BITS, BreakdownPhase.INTERMEDIATE, BreakdownPhase.FLOAT_VALUES]) {
+            let tds = this.shadowRoot.getElementById("breakdownRow" + phase.toString()).children;
+            tds[0].innerHTML = this.getSignExpression(bits, phase);
+            tds[1].innerHTML = this.getExponentExpression(bits, phase);
+            tds[2].innerHTML = this.getMantissaExpression(bits, phase);
+        }
+        let floatingValueDisplay = this.floatingValue;
+        if (this.multiplier !== 1) {
+            let floatValue = parseFloat(this.floatingValue);
+            if (!isNaN(floatValue)) {
+                floatingValueDisplay = this.floatingValue + ' * ' + this.#params.multiplier + ' = ' + (floatValue * this.multiplier);
+            }
+        }
+        this.shadowRoot.getElementById("floatingValueDisplay").innerHTML = floatingValueDisplay;
+
+        let coercedFromTr = this.shadowRoot.getElementById("coercedFromTr");
+        if (this.coercedFromFloatingPointValue) {
+            coercedFromTr.style.display = "";
+            coercedFromTr.children[0].innerHTML = 
+                `(coerced from ${this.coercedFromFloatingValue})`;
+        } else {
+            coercedFromTr.style.display = "none";
+        }
     }
 
     get showAllDetails() {
