@@ -151,13 +151,12 @@ customElements.define("app-settings", AppSettings);
 
 class HexFloatBreakdown extends HTMLElement {
     /**
-     * @type FloatingPointParams
+     * @type {FloatingPointParams}
      */
     #params;
     constructor() {
         super();
         this.#params = NAME_TO_FLOATING_POINT_PARAM.get(this.getAttribute("floatingPointType"));
-        // TODO - listen for "show details", etc.
         this.attachShadow({ mode: 'open' });
     }
     static get observedAttributes() {
@@ -421,8 +420,7 @@ class HexFloatBreakdown extends HTMLElement {
         if (!this.shadowRoot.childNodes.length) return;
         if (this.hexValue === '' || this.hexValue === 'ERROR'
             || this.floatingValue === '' || this.floatingValue === 'ERROR'
-            || this.hexValue.length !== 2 + this.#params.hexDigits) {
-                // TODO !showExplanation
+            || this.hexValue.length !== 2 + this.#params.hexDigits || !this.showAllDetails) {
             this.shadowRoot.getElementById("hexFloatTable").style.display = "none";
             return;
         }
@@ -521,6 +519,45 @@ class HexFloatBreakdown extends HTMLElement {
 }
 customElements.define("hex-float-breakdown", HexFloatBreakdown);
 
+class HexConverter extends HTMLElement {
+    /**
+     * @type {FloatingPointParams}
+     */
+    #params;
+    /**
+     * @type {string|undefined}
+     */
+    #marginTop;
+    constructor() {
+        super();
+        this.#params = NAME_TO_FLOATING_POINT_PARAM.get(this.getAttribute("floatingPointType"));
+        this.#marginTop = this.getAttribute("margintop");
+        this.attachShadow({ mode: 'open' });
+    }
+
+    connectedCallback() {
+        if (this.shadowRoot.childNodes.length) return;
+        let marginTopText = this.#marginTop ? ` style="margin-top: ${this.#marginTop}px"` : "";
+        this.shadowRoot.innerHTML = `
+            <link rel="stylesheet" href="index.css">
+            <form${marginTopText}>
+                <h1>${this.#params.floatLongDescription}</h1>
+                <hex-float-breakdown floatingPointType="float"
+                    hexValue="0x40900000" floatingValue="4.5" coercedFromFloatingValue="">
+                </hex-float-breakdown>
+            </form>
+            `;
+     
+        this.update();
+    }
+
+    update() {
+
+    }
+}
+customElements.define("hex-converter", HexConverter);
+
+
 const appTemplate = document.createElement('template');
 appTemplate.innerHTML = `
     <link rel="stylesheet" href="${import.meta.resolve('./index.css')}">
@@ -550,12 +587,13 @@ class FloatToHexApp extends HTMLElement {
         // stuff that changed or something
         // Note that the stuff in slots isn't actually in the Shadow DOM,
         // I guess?
-        for (let breakdown of this.querySelectorAll("hex-float-breakdown")) {
+        // Oof this is ugly
+        for (let converter of this.querySelectorAll("hex-converter")) {
+            let breakdown = converter.shadowRoot.querySelector("hex-float-breakdown");
             breakdown.showAllDetails = appSettings.showDetails;
             breakdown.flipEndianness = appSettings.swapBytes;
             breakdown.uppercaseLetters = appSettings.uppercaseLetters;
         }
     }
- 
 }
 customElements.define("float-to-hex-app", FloatToHexApp);
