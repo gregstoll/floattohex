@@ -532,27 +532,112 @@ class HexConverter extends HTMLElement {
         super();
         this.#params = NAME_TO_FLOATING_POINT_PARAM.get(this.getAttribute("floatingPointType"));
         this.#marginTop = this.getAttribute("margintop");
+        this.hexValue = "";
         this.attachShadow({ mode: 'open' });
     }
 
     connectedCallback() {
         if (this.shadowRoot.childNodes.length) return;
         let marginTopText = this.#marginTop ? ` style="margin-top: ${this.#marginTop}px"` : "";
+        // TODO
         this.shadowRoot.innerHTML = `
             <link rel="stylesheet" href="index.css">
             <form${marginTopText}>
                 <h1>${this.#params.floatLongDescription}</h1>
+                <p>
+                    <label>Hex value: <input id="hexValueInput" type="text"></label>
+                    <input id="convertToFloatButton" type="button" value="${'Convert to ' + this.#params.floatType.toLowerCase()}">
+                </p>
+
                 <hex-float-breakdown floatingPointType="float"
                     hexValue="0x40900000" floatingValue="4.5" coercedFromFloatingValue="">
                 </hex-float-breakdown>
+
+                <p>
+                    <label>${this.#params.floatType} value: <input id="floatValueInput" type="text"></label>
+                    <input id="convertToHexButton" type="button" value="Convert to hex">
+                </p>
             </form>
             `;
+        this.shadowRoot.getElementById("hexValueInput").onchange = e => {
+            // TODO flash stuff?
+            this.hexValue = e.target.value;
+        }
+        this.shadowRoot.getElementById("convertToFloatButton").onclick = () => {
+            // TODO TODO
+        }
+        this.shadowRoot.getElementById("convertToFloatButton").onclick = () => {
+            // TODO TODO
+        }
      
         this.update();
     }
+    static get observedAttributes() {
+        // TODO add the rest of these and hook them up
+        return ["hexvalue", "showalldetails", "flipendianness", "uppercaseletters"];
+    }
+
+    get showAllDetails() {
+        return !!this.getAttribute("showalldetails");
+    }
+    set showAllDetails(val) {
+        if (val) {
+            this.setAttribute("showalldetails", "true");
+        } else {
+            this.removeAttribute("showalldetails");
+        }
+    }
+    get flipEndianness() {
+        return !!this.getAttribute("flipendianness");
+    }
+    set flipEndianness(val) {
+        if (val) {
+            this.setAttribute("flipendianness", "true");
+        } else {
+            this.removeAttribute("flipendianness");
+        }
+    }
+    get uppercaseLetters() {
+        return !!this.getAttribute("uppercaseletters");
+    }
+    set uppercaseLetters(val) {
+        if (val) {
+            this.setAttribute("uppercaseletters", "true");
+        } else {
+            this.removeAttribute("uppercaseletters");
+        }
+    }
+    get hexValue() {
+        return this.getAttribute("hexvalue");
+    }
+    set hexValue(val) {
+        this.setAttribute("hexvalue", val);
+    }
+
+
+    /**
+     * 
+     * @param {string} hexValue 
+     * @returns {string}
+     */
+    displayHex(hexValue) {
+        if (this.uppercaseLetters) {
+            // Don't mess with the "0x" at the beginning
+            return hexValue.substring(0,2) + hexValue.substring(2).toUpperCase();
+        } else {
+            return hexValue.substring(0,2) + hexValue.substring(2).toLowerCase();
+        }
+    }
 
     update() {
+        if (!this.shadowRoot.childNodes.length) return;
 
+        let breakdown = this.shadowRoot.querySelector("hex-float-breakdown");
+        breakdown.showAllDetails = this.showDetails;
+        breakdown.flipEndianness = this.swapBytes;
+        breakdown.uppercaseLetters = this.uppercaseLetters;
+
+        this.shadowRoot.getElementById("hexValueInput").value = this.displayHex(this.hexValue);
     }
 }
 customElements.define("hex-converter", HexConverter);
@@ -589,10 +674,10 @@ class FloatToHexApp extends HTMLElement {
         // I guess?
         // Oof this is ugly
         for (let converter of this.querySelectorAll("hex-converter")) {
-            let breakdown = converter.shadowRoot.querySelector("hex-float-breakdown");
-            breakdown.showAllDetails = appSettings.showDetails;
-            breakdown.flipEndianness = appSettings.swapBytes;
-            breakdown.uppercaseLetters = appSettings.uppercaseLetters;
+            //let breakdown = converter.shadowRoot.querySelector("hex-float-breakdown");
+            converter.showAllDetails = appSettings.showDetails;
+            converter.flipEndianness = appSettings.swapBytes;
+            converter.uppercaseLetters = appSettings.uppercaseLetters;
         }
     }
 }
