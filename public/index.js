@@ -5,6 +5,13 @@ const BreakdownPhase = Object.freeze({
     INTERMEDIATE : 1,
     FLOAT_VALUES : 2,
 });
+
+const ConvertMode = Object.freeze({
+    HEX_TO_FLOATING : 0,
+    FLOATING_TO_HEX : 1,
+});
+
+
 // sort of a type
 /**
 * @typedef {Object} FloatingPointParams
@@ -85,8 +92,6 @@ class AppSettings extends HTMLElement {
                 `;
         // update() first so this doesn't trigger events, I guess?
         this.update();
-        // TODO - do these trigger if these are set programmatically?
-        // TODO - oh, should these be using property values?
         this.shadowRoot.getElementById("showDetails").addEventListener("change", () => {
             let value = this.shadowRoot.getElementById("showDetails").checked;
             this.showDetails = value;
@@ -117,33 +122,33 @@ class AppSettings extends HTMLElement {
     }
 
     get showDetails() {
-        return !!this.getAttribute("showDetails");
+        return !!this.getAttribute("showdetails");
     }
     set showDetails(value) {
         if (value) {
-            this.setAttribute("showDetails", "true");
+            this.setAttribute("showdetails", "true");
         } else {
-            this.removeAttribute("showDetails");
+            this.removeAttribute("showdetails");
         }
     }
     get swapBytes() {
-        return !!this.getAttribute("swapBytes");
+        return !!this.getAttribute("swapbytes");
     }
     set swapBytes(value) {
         if (value) {
-            this.setAttribute("swapBytes", "true");
+            this.setAttribute("swapbytes", "true");
         } else {
-            this.removeAttribute("swapBytes");
+            this.removeAttribute("swapbytes");
         }
     }
     get uppercaseLetters() {
-        return !!this.getAttribute("uppercaseLetters");
+        return !!this.getAttribute("uppercaseletters");
     }
     set uppercaseLetters(value) {
         if (value) {
-            this.setAttribute("uppercaseLetters", "true");
+            this.setAttribute("uppercaseletters", "true");
         } else {
-            this.removeAttribute("uppercaseLetters");
+            this.removeAttribute("uppercaseletters");
         }
     }
 }
@@ -173,9 +178,8 @@ class HexFloatBreakdown extends HTMLElement {
             hexDigitsTds.push(`<td colspan="4" class="hexDigitCollapsed ${this.classNameFromBitIndex(4*i)}"></td>`);
         }
 
-        let bits = this.getBits();
         let binaryDigitsTds = [];
-        for (let i = 0; i < bits.length; ++i) {
+        for (let i = 0; i < this.#params.hexDigits * 4; ++i) {
             binaryDigitsTds.push(`<td class="binaryDigit ${this.classNameFromBitIndex(i)}"></td>`);
         }
 
@@ -418,8 +422,8 @@ class HexFloatBreakdown extends HTMLElement {
 
     update() {
         if (!this.shadowRoot.childNodes.length) return;
-        if (this.hexValue === '' || this.hexValue === 'ERROR'
-            || this.floatingValue === '' || this.floatingValue === 'ERROR'
+        if (this.hexValue === '' || this.hexValue === 'ERROR' || (this.hexValue === null)
+            || this.floatingValue === '' || this.floatingValue === 'ERROR' || (this.floatingValue === null)
             || this.hexValue.length !== 2 + this.#params.hexDigits || !this.showAllDetails) {
             this.shadowRoot.getElementById("hexFloatTable").style.display = "none";
             return;
@@ -503,8 +507,14 @@ class HexFloatBreakdown extends HTMLElement {
     get hexValue() {
         return this.getAttribute("hexvalue");
     }
+    set hexValue(val) {
+        this.setAttribute("hexvalue", val);
+    }
     get floatingValue() {
         return this.getAttribute("floatingvalue");
+    }
+    set floatingValue(val) {
+        this.setAttribute("floatingvalue", val);
     }
     get coercedFromFloatingPointValue() {
         return this.getAttribute("coercedfromfloatingpointvalue");
@@ -528,29 +538,28 @@ class HexConverter extends HTMLElement {
      * @type {string|undefined}
      */
     #marginTop;
+    #clearAnimationTimeout;
     constructor() {
         super();
         this.#params = NAME_TO_FLOATING_POINT_PARAM.get(this.getAttribute("floatingPointType"));
         this.#marginTop = this.getAttribute("margintop");
-        this.hexValue = "";
+        //this.hexValue = "";
         this.attachShadow({ mode: 'open' });
     }
 
     connectedCallback() {
         if (this.shadowRoot.childNodes.length) return;
         let marginTopText = this.#marginTop ? ` style="margin-top: ${this.#marginTop}px"` : "";
-        // TODO
         this.shadowRoot.innerHTML = `
             <link rel="stylesheet" href="index.css">
-            <form${marginTopText}>
+            <form${marginTopText} class="hexConverter" id="hexConverterForm">
                 <h1>${this.#params.floatLongDescription}</h1>
                 <p>
                     <label>Hex value: <input id="hexValueInput" type="text"></label>
                     <input id="convertToFloatButton" type="button" value="${'Convert to ' + this.#params.floatType.toLowerCase()}">
                 </p>
 
-                <hex-float-breakdown floatingPointType="float"
-                    hexValue="0x40900000" floatingValue="4.5" coercedFromFloatingValue="">
+                <hex-float-breakdown floatingPointType="${this.getAttribute("floatingPointType")}">
                 </hex-float-breakdown>
 
                 <p>
@@ -560,23 +569,114 @@ class HexConverter extends HTMLElement {
             </form>
             `;
         this.shadowRoot.getElementById("hexValueInput").onchange = e => {
-            // TODO flash stuff?
+            // TODO - do we need this?
             this.hexValue = e.target.value;
         }
-        this.shadowRoot.getElementById("convertToFloatButton").onclick = () => {
-            // TODO TODO
+        this.shadowRoot.getElementById("convertToHexButton").onclick = () => {
+            this.floatingValue = this.shadowRoot.getElementById("floatValueInput").value;
+            this.convertToHex();
         }
         this.shadowRoot.getElementById("convertToFloatButton").onclick = () => {
-            // TODO TODO
+            this.hexValue = this.shadowRoot.getElementById("hexValueInput").value;
+            this.convertToFloat();
         }
      
         this.update();
     }
     static get observedAttributes() {
-        // TODO add the rest of these and hook them up
-        return ["hexvalue", "showalldetails", "flipendianness", "uppercaseletters"];
+        return ["hexvalue", "floatingvalue", "calculatedhexvalue", "calculatedfloatingvalue", "coercedfromfloatingvalue",
+            "showalldetails", "flipendianness", "uppercaseletters"];
+    }
+    attributeChangedCallback(_name, _oldValue, _newValue) {
+        this.update();
+    }
+    getNumericMultiplier() {
+        return 1;
+    }
+    convertToHex() {
+        let floatValue = parseFloat(this.floatingValue);
+        floatValue *= this.getNumericMultiplier();
+        this.doConvert('action=' + this.#params.floatType.toLowerCase() + 'tohex&' + this.#params.floatType.toLowerCase() + '=' + floatValue.toString().replace('+', '%2B') + '&swap=' + (this.#params.flipEndianness ? '1' : '0'), ConvertMode.FLOATING_TO_HEX);
+    }
+    convertToFloat() {
+        this.doConvert('action=hexto' + this.#params.floatType.toLowerCase() + '&hex=' + this.hexValue.replaceAll(' ', '') + '&swap=' + (this.flipEndianness ? '1' : '0'), ConvertMode.HEX_TO_FLOATING);
+    }
+    /**
+     * 
+     * @param {string} query 
+     * @param {ConvertMode} mode 
+     */
+    doConvert(query, mode) {
+        let start_time = performance.now();
+        let responseText = window.hexfloatcgi(query);
+        let end_time = performance.now();
+        console.log(`bindgen call took ${(end_time - start_time).toFixed(2)}ms`);
+        this.setConvertResult(responseText, mode);
+    } 
+    /**
+     * 
+     * @param {string} responseText 
+     * @param {ConvertMode} mode 
+     */
+    setConvertResult(responseText, mode) {
+        let documentElement = this.parseXml(responseText).documentElement;
+        if (documentElement === null) {
+            console.error("couldn't parse responseXml!");
+            return;
+        }
+        let hexElem = documentElement.getElementsByTagName("hex")[0];
+        let hexValue = hexElem?.childNodes[0]?.nodeValue || "";
+        let floatingElem = documentElement.getElementsByTagName(this.#params.floatType.toLowerCase())[0];
+        while (hexValue.length < this.#params.hexDigits + 2) {
+            hexValue = hexValue.substring(0, 2) + "0" + hexValue.substring(2);
+        }
+        let floatingValue = floatingElem.childNodes[0].nodeValue || "";
+        let coercedFromFloatingElem = documentElement.getElementsByTagName("coercedFloat").item(0);
+        let coercedFromFloatingRawValue = coercedFromFloatingElem?.childNodes[0]?.nodeValue || "";
+        let coercedFromFloatingValue = "";
+        if (mode === ConvertMode.FLOATING_TO_HEX) {
+            let parsedFloatValue = parseFloat(floatingValue);
+            if (!isNaN(parsedFloatValue)) {
+                let parsedCoercedFloatingValue = parseFloat(coercedFromFloatingRawValue);
+                if (!isNaN(parsedCoercedFloatingValue)) {
+                    floatingValue = (parsedCoercedFloatingValue / this.getNumericMultiplier()).toString();
+                    coercedFromFloatingValue = (parsedFloatValue / this.getNumericMultiplier()).toString();
+                } else {
+                    floatingValue = (parsedFloatValue / this.getNumericMultiplier()).toString();
+                }
+            }
+        }
+        let isChange = this.calculatedHexValue !== hexValue || this.calculatedFloatingValue !== floatingValue;
+        this.hexValue = hexValue;
+        this.floatingValue = floatingValue;
+        this.calculatedHexValue = hexValue;
+        this.calculatedFloatingValue = floatingValue;
+        this.coercedFromFloatingValue = coercedFromFloatingValue;
+        if (isChange) {
+            if (this.#clearAnimationTimeout) {
+                clearTimeout(this.#clearAnimationTimeout);
+                this.#clearAnimationTimeout = undefined;
+            }
+            this.shadowRoot.getElementById("hexConverterForm").classList.add("hexConverterFlash");
+            // TODO - keep 500 in sync somehow?
+            this.#clearAnimationTimeout = setTimeout(() => {
+                this.shadowRoot.getElementById("hexConverterForm").classList.remove("hexConverterFlash");
+                this.#clearAnimationTimeout = undefined;
+            }, 500);
+        }
     }
 
+    /**
+     * 
+     * @param {string} s 
+     * @returns {XMLDocument}
+     */
+    parseXml(s) {
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(s, "text/xml");
+        return xmlDoc;
+    }
+ 
     get showAllDetails() {
         return !!this.getAttribute("showalldetails");
     }
@@ -613,6 +713,30 @@ class HexConverter extends HTMLElement {
     set hexValue(val) {
         this.setAttribute("hexvalue", val);
     }
+    get floatingValue() {
+        return this.getAttribute("floatingvalue");
+    }
+    set floatingValue(val) {
+        this.setAttribute("floatingvalue", val);
+    }
+    get calculatedHexValue() {
+        return this.getAttribute("calculatedhexvalue");
+    }
+    set calculatedHexValue(val) {
+        this.setAttribute("calculatedhexvalue", val);
+    }
+    get calculatedFloatingValue() {
+        return this.getAttribute("calculatedfloatingvalue");
+    }
+    set calculatedFloatingValue(val) {
+        this.setAttribute("calculatedfloatingvalue", val);
+    }
+    get coercedFromFloatingValue() {
+        return this.getAttribute("coercedfromfloatingvalue");
+    }
+    set coercedFromFloatingValue(val) {
+        this.setAttribute("coercedfromfloatingvalue", val);
+    }
 
 
     /**
@@ -621,6 +745,7 @@ class HexConverter extends HTMLElement {
      * @returns {string}
      */
     displayHex(hexValue) {
+        if (!hexValue) { return '';}
         if (this.uppercaseLetters) {
             // Don't mess with the "0x" at the beginning
             return hexValue.substring(0,2) + hexValue.substring(2).toUpperCase();
@@ -633,9 +758,15 @@ class HexConverter extends HTMLElement {
         if (!this.shadowRoot.childNodes.length) return;
 
         let breakdown = this.shadowRoot.querySelector("hex-float-breakdown");
-        breakdown.showAllDetails = this.showDetails;
-        breakdown.flipEndianness = this.swapBytes;
+        breakdown.showAllDetails = this.showAllDetails;
+        breakdown.flipEndianness = this.flipEndianness;
         breakdown.uppercaseLetters = this.uppercaseLetters;
+
+        if (this.calculatedHexValue) {
+            breakdown.hexValue = this.displayHex(this.calculatedHexValue);
+            breakdown.floatingValue = this.calculatedFloatingValue;
+            breakdown.calculatedFloatingValue = this.calculatedFloatingValue;
+        }
 
         this.shadowRoot.getElementById("hexValueInput").value = this.displayHex(this.hexValue);
     }
@@ -647,7 +778,7 @@ const appTemplate = document.createElement('template');
 appTemplate.innerHTML = `
     <link rel="stylesheet" href="${import.meta.resolve('./index.css')}">
     <div>
-        <app-settings showDetails="true"></app-settings>
+        <app-settings showdetails="true"></app-settings>
         <slot></slot>
     </div>`;
 
@@ -674,7 +805,6 @@ class FloatToHexApp extends HTMLElement {
         // I guess?
         // Oof this is ugly
         for (let converter of this.querySelectorAll("hex-converter")) {
-            //let breakdown = converter.shadowRoot.querySelector("hex-float-breakdown");
             converter.showAllDetails = appSettings.showDetails;
             converter.flipEndianness = appSettings.swapBytes;
             converter.uppercaseLetters = appSettings.uppercaseLetters;
