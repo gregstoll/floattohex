@@ -113,9 +113,30 @@ class AppSettings extends HTMLElement {
                 detail: {uppercaseLetters: value}
             }));
         });
+        if (window.location.search) {
+            let hash = window.location.search.substring(1);
+            let parts = hash.split('&');
+            for (let i = 0; i < parts.length; ++i) {
+                // hacky
+                if (parts[i] === 'showExplanation=0') {
+                    //this.shadowRoot.getElementById("showDetails").checked = false;
+                    this.showDetails = false;
+                }
+                else if (parts[i] === 'uppercaseLetters=1') {
+                    this.uppercaseLetters = true;
+                }
+            }
+        }
+    }
+    static get observedAttributes() {
+        return ["showdetails", "swapbytes", "uppercaseletters"];
+    }
+    attributeChangedCallback(_name, _oldValue, _newValue) {
+        this.update();
     }
 
     update() {
+        if (!this.shadowRoot.childNodes.length) return;
         this.shadowRoot.getElementById("showDetails").checked = this.showDetails;
         //this.shadowRoot.getElementById("swapBytes").checked = this.swapBytes;
         this.shadowRoot.getElementById("uppercaseLetters").checked = this.uppercaseLetters;
@@ -769,6 +790,7 @@ class HexConverter extends HTMLElement {
         }
 
         this.shadowRoot.getElementById("hexValueInput").value = this.displayHex(this.hexValue);
+        this.shadowRoot.getElementById("floatValueInput").value = this.floatingValue;
     }
 }
 customElements.define("hex-converter", HexConverter);
@@ -791,7 +813,7 @@ class FloatToHexApp extends HTMLElement {
         if (this.shadowRoot.childNodes.length) return;
         this.shadowRoot.append(appTemplate.content.cloneNode(true));
         this.shadowRoot.querySelector("app-settings").addEventListener("settingChange", e => {
-            let data = e.detail;
+            //let data = e.detail;
             this.update();
         });
         this.update();
