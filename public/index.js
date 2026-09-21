@@ -119,7 +119,6 @@ class AppSettings extends HTMLElement {
             for (let i = 0; i < parts.length; ++i) {
                 // hacky
                 if (parts[i] === 'showExplanation=0') {
-                    //this.shadowRoot.getElementById("showDetails").checked = false;
                     this.showDetails = false;
                 }
                 else if (parts[i] === 'uppercaseLetters=1') {
@@ -679,12 +678,26 @@ class HexConverter extends HTMLElement {
                 this.#clearAnimationTimeout = undefined;
             }
             this.shadowRoot.getElementById("hexConverterForm").classList.add("hexConverterFlash");
-            // TODO - keep 500 in sync somehow?
+            // Get the animation duration from CSS so we can clear the class name after that.
+            let style = window.getComputedStyle(this.shadowRoot.getElementById("hexConverterForm"));
+            let durationStr = style.getPropertyValue("animation-duration");
             this.#clearAnimationTimeout = setTimeout(() => {
                 this.shadowRoot.getElementById("hexConverterForm").classList.remove("hexConverterFlash");
                 this.#clearAnimationTimeout = undefined;
-            }, 500);
+            }, this.parseTime(durationStr));
         }
+    }
+
+    /**
+     * 
+     * @param {string} s 
+     * @returns {number} The number of milliseconds the string represents
+     */
+    parseTime(s) {
+        if (s.endsWith("ms")) { return parseInt(s.substring(0, s.length - 2), 10);}
+        if (s.endsWith("s")) { return 1000 * parseFloat(s.substring(0, s.length - 1));}
+        console.warn(`Couldn't parse time string "${s}"`);
+        return 500;
     }
 
     /**
