@@ -130,8 +130,10 @@ class AppSettings extends HTMLElement {
     static get observedAttributes() {
         return ["showdetails", "swapbytes", "uppercaseletters"];
     }
-    attributeChangedCallback(_name, _oldValue, _newValue) {
-        this.update();
+    attributeChangedCallback(_name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.update();
+        }
     }
 
     update() {
@@ -187,9 +189,10 @@ class HexFloatBreakdown extends HTMLElement {
     static get observedAttributes() {
         return ["hexvalue", "floatingvalue", "coercedfromfloatingvalue", "multiplier", "showalldetails", "flipendianness", "uppercaseletters"];
     }
-    attributeChangedCallback(_name, _oldValue, _newValue) {
-        // TODO only if oldValue !== newValue?
-        this.update();
+    attributeChangedCallback(_name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.update();
+        }
     }
     connectedCallback() {
         if (this.shadowRoot.childNodes.length) return;
@@ -588,16 +591,20 @@ class HexConverter extends HTMLElement {
                 </p>
             </form>
             `;
+        // Not totally sure we need these next two, maybe we could get away
+        // with just setting these in the convert buttons
         this.shadowRoot.getElementById("hexValueInput").onchange = e => {
-            // TODO - do we need this?
             this.hexValue = e.target.value;
         }
+        this.shadowRoot.getElementById("floatValueInput").onchange = e => {
+            this.floatingValue = e.target.value;
+        }
         this.shadowRoot.getElementById("convertToHexButton").onclick = () => {
-            this.floatingValue = this.shadowRoot.getElementById("floatValueInput").value;
+            //this.floatingValue = this.shadowRoot.getElementById("floatValueInput").value;
             this.convertToHex();
         }
         this.shadowRoot.getElementById("convertToFloatButton").onclick = () => {
-            this.hexValue = this.shadowRoot.getElementById("hexValueInput").value;
+            //this.hexValue = this.shadowRoot.getElementById("hexValueInput").value;
             this.convertToFloat();
         }
      
@@ -607,8 +614,10 @@ class HexConverter extends HTMLElement {
         return ["hexvalue", "floatingvalue", "calculatedhexvalue", "calculatedfloatingvalue", "coercedfromfloatingvalue",
             "showalldetails", "flipendianness", "uppercaseletters"];
     }
-    attributeChangedCallback(_name, _oldValue, _newValue) {
-        this.update();
+    attributeChangedCallback(_name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.update();
+        }
     }
     getNumericMultiplier() {
         return 1;
@@ -834,11 +843,8 @@ class FloatToHexApp extends HTMLElement {
     update() {
         if (!this.shadowRoot.childNodes.length) return;
         let appSettings = this.shadowRoot.querySelector("app-settings");
-        // TODO this will be another tag name, and only set
-        // stuff that changed or something
         // Note that the stuff in slots isn't actually in the Shadow DOM,
         // I guess?
-        // Oof this is ugly
         for (let converter of this.querySelectorAll("hex-converter")) {
             converter.showAllDetails = appSettings.showDetails;
             converter.flipEndianness = appSettings.swapBytes;
