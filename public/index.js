@@ -1,12 +1,12 @@
 "use strict";
 
-const BreakdownPhase = Object.freeze({
+export const BreakdownPhase = Object.freeze({
     RAW_BITS : 0,
     INTERMEDIATE : 1,
     FLOAT_VALUES : 2,
 });
 
-const ConvertMode = Object.freeze({
+export const ConvertMode = Object.freeze({
     HEX_TO_FLOATING : 0,
     FLOATING_TO_HEX : 1,
 });

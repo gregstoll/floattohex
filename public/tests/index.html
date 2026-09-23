@@ -167,6 +167,195 @@ describe("denormalized switching", function() {
 
         cleanup();
     });
+});
+describe("coercing floats", function() {
+    it('noCoercedFloatValue', async () => {
+        await window.loadPromise;
+        let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+        setupHexConverter(f, "0x7ff00000");
+        await new Promise((res) => res());
+        let xml = "<values><float>4.5</float><hex>0x40900000</hex></values>";
+        f.setConvertResult(xml, src.ConvertMode.FLOATING_TO_HEX);
+        expect(f.coercedFromFloatingValue).to.equal("");
+        expect(f.hexValue).to.equal("0x40900000");
+        expect(f.floatingValue).to.equal("4.5");
+
+        cleanup();
+    });
+    it('coercedFloatValue', async () => {
+        await window.loadPromise;
+        let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+        setupHexConverter(f, "0x7ff00000");
+        await new Promise((res) => res());
+        let xml = "<values><float>4.500243111</float><hex>0x409001fe</hex><coercedFloat>4.500243</coercedFloat></values>";
+        f.setConvertResult(xml, src.ConvertMode.FLOATING_TO_HEX);
+        expect(f.coercedFromFloatingValue).to.equal("4.500243111");
+        expect(f.hexValue).to.equal("0x409001fe");
+        expect(f.floatingValue).to.equal("4.500243");
+
+        cleanup();
+    });
+
+});
+describe("uppercase tests", function() {
+    for (let [hexValue, uppercase, expected] of [
+          ["0x12ab34CD", false, "0x12ab34cd"],
+          ["0x12ab34CD", true, "0x12AB34CD"]]) {
+        it(`HexConverter.displayHex ${hexValue} uppercase:${uppercase}`, async () => {
+            await window.loadPromise;
+            let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+            setupHexConverter(f, hexValue);
+            f.uppercaseLetters = uppercase;
+            await new Promise((res) => res());
+            expect(f.shadowRoot.getElementById("hexValueInput").value).to.equal(expected);
+
+            cleanup();
+        });
+    }
+});
+describe("getBits tests", function() {
+    for (let [hexValue, expectedBits] of [
+        ["0x00000000", "00000000000000000000000000000000"],
+        ["0xffffffff", "11111111111111111111111111111111"],
+        ["0x12AB34CD", "00010010101010110011010011001101"],
+    ]) {
+        it(`getBits ${hexValue}`, async () => {
+            await window.loadPromise;
+            let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+            setupHexConverter(f, hexValue);
+            f.shadowRoot.getElementById("convertToFloatButton").click();
+            await new Promise((res) => res());
+            let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+            let bits = breakdown.getBits();
+            expect(bits.join('')).to.equal(expectedBits);
+
+            cleanup();
+        });
+    }
+});
+describe("getSignExpression tests", function() {
+    for (let [bits, expected] of [
+            ["10000000", "-1"],
+            ["00000001", "+1"]
+    ]) {
+        it(`getSignExpression ${bits}`, async () => {
+            await window.loadPromise;
+            let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+            setupHexConverter(f, "");
+            let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+            expect(breakdown.getSignExpression(bits, src.BreakdownPhase.RAW_BITS)).to.equal(expected);
+            expect(breakdown.getSignExpression(bits, src.BreakdownPhase.INTERMEDIATE)).to.contain(expected);
+            expect(breakdown.getSignExpression(bits, src.BreakdownPhase.FLOAT_VALUE)).to.contain(expected);
+
+            cleanup();
+        });
+    }
+});
+describe("getExponentExpression", function() { 
+    for (let [hexValue, expectedRawBits, expectedIntermediateValues, expectedFloatValues] of [
+        ["0x00000000", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
+        ["0x80000000", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
+        ["0x40900000", "129", "2^(129 - 127) *", "4.00000000 *"],
+        ["0xc0900000", "129", "2^(129 - 127) *", "4.00000000 *"],
+        ["0x7fc00000", "255 <b>special</b>", "", ""],
+        ["0x7f800000", "255 <b>special</b>", "", ""],
+        ["0xff800000", "255 <b>special</b>", "", ""],
+        ["0x00000001", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
+        ["0x80000001", "0 <b>subnormal</b>", "2^-126 *", "1.17549435e-38 *"],
+    ]) {
+        it(`getExponentExpression float ${hexValue}`, async () => {
+            await window.loadPromise;
+            let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+            setupHexConverter(f, hexValue);
+            f.shadowRoot.getElementById("convertToFloatButton").click();
+            await new Promise((res) => res());
+            let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+            expect(breakdown.getExponentExpression(breakdown.getBits(), src.BreakdownPhase.RAW_BITS)).to.equal(expectedRawBits);
+            expect(breakdown.getExponentExpression(breakdown.getBits(), src.BreakdownPhase.INTERMEDIATE)).to.equal(expectedIntermediateValues);
+            expect(breakdown.getExponentExpression(breakdown.getBits(), src.BreakdownPhase.FLOAT_VALUES)).to.equal(expectedFloatValues);
+     
+            cleanup();
+        });
+    }
+
+    for (let [hexValue, expectedRawBits, expectedIntermediateValues, expectedFloatValues] of [
+        ["0x0000000000000000", "0 <b>subnormal</b>", "2^-1022 *", "2.2250738585072014e-308 *"],
+        ["0x8000000000000000", "0 <b>subnormal</b>", "2^-1022 *", "2.2250738585072014e-308 *"],
+        ["0x4012000000000000", "1025", "2^(1025 - 1023) *", "4.0000000000000000 *"],
+        ["0xc012000000000000", "1025", "2^(1025 - 1023) *", "4.0000000000000000 *"],
+        ["0x7ff8000000000000", "2047 <b>special</b>", "", ""],
+        ["0x7ff0000000000000", "2047 <b>special</b>", "", ""],
+        ["0xfff0000000000000", "2047 <b>special</b>", "", ""],
+        ["0x0000000000000001", "0 <b>subnormal</b>", "2^-1022 *", "2.2250738585072014e-308 *"],
+        ["0x8000000000000001", "0 <b>subnormal</b>", "2^-1022 *", "2.2250738585072014e-308 *"],
+    ]) {
+        it(`getExponentExpression double ${hexValue}`, async () => {
+            await window.loadPromise;
+            let f = fixture(`<hex-converter floatingPointType="double"></hex-converter>`);
+            setupHexConverter(f, hexValue);
+            f.shadowRoot.getElementById("convertToFloatButton").click();
+            await new Promise((res) => res());
+            let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+            expect(breakdown.getExponentExpression(breakdown.getBits(), src.BreakdownPhase.RAW_BITS)).to.equal(expectedRawBits);
+            expect(breakdown.getExponentExpression(breakdown.getBits(), src.BreakdownPhase.INTERMEDIATE)).to.equal(expectedIntermediateValues);
+            expect(breakdown.getExponentExpression(breakdown.getBits(), src.BreakdownPhase.FLOAT_VALUES)).to.equal(expectedFloatValues);
+     
+            cleanup();
+        });
+    }
+});
+
+describe("getMantissaExpression", function() {
+    for (let [hexValue, expectedRawBits, expectedIntermediateValues, expectedFloatValues] of [
+        ["0x00000000", "0.00000000000000000000000 (binary)", 0, 0],
+        ["0x80000000", "0.00000000000000000000000 (binary)", 0, 0],
+        ["0x40900000", "1.00100000000000000000000 (binary)", 1.125, 1.125],
+        ["0xc0900000", "1.00100000000000000000000 (binary)", 1.125, 1.125],
+        ["0x7fc00000", "NaN (since non-zero)", "NaN (since non-zero)", "NaN (since non-zero)"],
+        ["0x7f800000", "Infinity (since all zeros)", "Infinity (since all zeros)", "Infinity (since all zeros)"],
+        ["0xff800000", "Infinity (since all zeros)", "Infinity (since all zeros)", "Infinity (since all zeros)"],
+        ["0x00000001", "0.00000000000000000000001 (binary)", 1.1920928955078125e-7, 1.1920928955078125e-7],
+        ["0x80000001", "0.00000000000000000000001 (binary)", 1.1920928955078125e-7, 1.1920928955078125e-7],
+    ]) {
+        it(`getMantissaExpression float ${hexValue}`, async () => {
+            await window.loadPromise;
+            let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+            setupHexConverter(f, hexValue);
+            f.shadowRoot.getElementById("convertToFloatButton").click();
+            await new Promise((res) => res());
+            let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+            expect(breakdown.getMantissaExpression(breakdown.getBits(), src.BreakdownPhase.RAW_BITS)).to.equal(expectedRawBits);
+            expect(breakdown.getMantissaExpression(breakdown.getBits(), src.BreakdownPhase.INTERMEDIATE)).to.equal(expectedIntermediateValues);
+            expect(breakdown.getMantissaExpression(breakdown.getBits(), src.BreakdownPhase.FLOAT_VALUES)).to.equal(expectedFloatValues);
+     
+            cleanup();
+        });
+    }
+    for (let [hexValue, expectedRawBits, expectedIntermediateValues, expectedFloatValues] of [
+        ["0x0000000000000000", "0.0000000000000000000000000000000000000000000000000000 (binary)", 0, 0],
+        ["0x8000000000000000", "0.0000000000000000000000000000000000000000000000000000 (binary)", 0, 0],
+        ["0x4012000000000000", "1.0010000000000000000000000000000000000000000000000000 (binary)", 1.125, 1.125],
+        ["0xc012000000000000", "1.0010000000000000000000000000000000000000000000000000 (binary)", 1.125, 1.125],
+        ["0x7ff8000000000000", "NaN (since non-zero)", "NaN (since non-zero)", "NaN (since non-zero)"],
+        ["0x7ff0000000000000", "Infinity (since all zeros)", "Infinity (since all zeros)", "Infinity (since all zeros)"],
+        ["0xfff0000000000000", "Infinity (since all zeros)", "Infinity (since all zeros)", "Infinity (since all zeros)"],
+        ["0x0000000000000001", "0.0000000000000000000000000000000000000000000000000001 (binary)", 2.220446049250313e-16, 2.220446049250313e-16],
+        ["0x8000000000000001", "0.0000000000000000000000000000000000000000000000000001 (binary)", 2.220446049250313e-16, 2.220446049250313e-16],
+    ]) {
+        it(`getMantissaExpression double ${hexValue}`, async () => {
+            await window.loadPromise;
+            let f = fixture(`<hex-converter floatingPointType="double"></hex-converter>`);
+            setupHexConverter(f, hexValue);
+            f.shadowRoot.getElementById("convertToFloatButton").click();
+            await new Promise((res) => res());
+            let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+            expect(breakdown.getMantissaExpression(breakdown.getBits(), src.BreakdownPhase.RAW_BITS)).to.equal(expectedRawBits);
+            expect(breakdown.getMantissaExpression(breakdown.getBits(), src.BreakdownPhase.INTERMEDIATE)).to.equal(expectedIntermediateValues);
+            expect(breakdown.getMantissaExpression(breakdown.getBits(), src.BreakdownPhase.FLOAT_VALUES)).to.equal(expectedFloatValues);
+     
+            cleanup();
+        });
+    }
 
 
 });
