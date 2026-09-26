@@ -1,0 +1,15 @@
+{
+  "name": "floattohexlib-bindgen",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "floattohexlib_bindgen_bg.wasm",
+    "floattohexlib_bindgen.js",
+    "floattohexlib_bindgen.d.ts"
+  ],
+  "main": "floattohexlib_bindgen.js",
+  "types": "floattohexlib_bindgen.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

@@ -2,7 +2,7 @@
   "name": "floattohex-react",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/~gregstoll/floattohex/",
+  "homepage": "/~gregstoll/floattohex/old/",
   "dependencies": {
     "react": "^18.2.0",
     "react-animate-on-change": "^2.2.0",
