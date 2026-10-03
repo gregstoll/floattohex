@@ -84,9 +84,9 @@ class AppSettings extends HTMLElement {
         this.shadowRoot.innerHTML = `
                 <div>
                     <label><input id="showDetails" type="checkbox">Show details</label>
-                    <!-- &nbsp;
+                    &nbsp;
                       <label><input id="swapBytes" type="checkbox">Swap to use big-endian</label>
-                    &nbsp; -->
+                    &nbsp;
                     <label><input id="uppercaseLetters" type="checkbox">Uppercase letters in hex</label>
                 </div>
                 `;
@@ -99,13 +99,13 @@ class AppSettings extends HTMLElement {
                 detail: {showDetails: value}
             }));
         });
-        /*this.shadowRoot.getElementById("swapBytes").addEventListener("change", () => {
+        this.shadowRoot.getElementById("swapBytes").addEventListener("change", () => {
             let value = this.shadowRoot.getElementById("swapBytes").checked;
             this.swapBytes = value;
             this.dispatchEvent(new CustomEvent("settingChange", {
                 detail: {swapBytes: value}
             }));
-        });*/
+        });
         this.shadowRoot.getElementById("uppercaseLetters").addEventListener("change", () => {
             let value = this.shadowRoot.getElementById("uppercaseLetters").checked;
             this.uppercaseLetters = value;
@@ -578,7 +578,7 @@ class HexConverter extends HTMLElement {
             <form${marginTopText} class="hexConverter" id="hexConverterForm">
                 <h1>${this.#params.floatLongDescription}</h1>
                 <p>
-                    <label>Hex value: <input id="hexValueInput" type="text"></label>
+                    <label><span id="endianness"></span> hex value: <input id="hexValueInput" type="text"></label>
                     <input id="convertToFloatButton" type="button" value="${'Convert to ' + this.#params.floatType.toLowerCase()}">
                 </p>
 
@@ -625,7 +625,7 @@ class HexConverter extends HTMLElement {
     convertToHex() {
         let floatValue = parseFloat(this.floatingValue);
         floatValue *= this.getNumericMultiplier();
-        this.doConvert('action=' + this.#params.floatType.toLowerCase() + 'tohex&' + this.#params.floatType.toLowerCase() + '=' + floatValue.toString().replace('+', '%2B') + '&swap=' + (this.#params.flipEndianness ? '1' : '0'), ConvertMode.FLOATING_TO_HEX);
+        this.doConvert('action=' + this.#params.floatType.toLowerCase() + 'tohex&' + this.#params.floatType.toLowerCase() + '=' + floatValue.toString().replace('+', '%2B') + '&swap=' + (this.flipEndianness ? '1' : '0'), ConvertMode.FLOATING_TO_HEX);
     }
     convertToFloat() {
         this.doConvert('action=hexto' + this.#params.floatType.toLowerCase() + '&hex=' + this.hexValue.replaceAll(' ', '') + '&swap=' + (this.flipEndianness ? '1' : '0'), ConvertMode.HEX_TO_FLOATING);
@@ -676,9 +676,9 @@ class HexConverter extends HTMLElement {
             }
         }
         let isChange = this.calculatedHexValue !== hexValue || this.calculatedFloatingValue !== floatingValue;
+        this.calculatedHexValue = hexValue;
         this.hexValue = hexValue;
         this.floatingValue = floatingValue;
-        this.calculatedHexValue = hexValue;
         this.calculatedFloatingValue = floatingValue;
         this.coercedFromFloatingValue = coercedFromFloatingValue;
         if (isChange) {
@@ -813,6 +813,7 @@ class HexConverter extends HTMLElement {
 
         this.shadowRoot.getElementById("hexValueInput").value = this.displayHex(this.hexValue);
         this.shadowRoot.getElementById("floatValueInput").value = this.floatingValue;
+        this.shadowRoot.getElementById("endianness").innerText = this.flipEndianness ? "Big endian" : "Little endian";
     }
 }
 customElements.define("hex-converter", HexConverter);

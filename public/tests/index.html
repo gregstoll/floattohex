@@ -356,7 +356,52 @@ describe("getMantissaExpression", function() {
             cleanup();
         });
     }
+});
+describe("flipHexString", function() {
+    it("flipHexString on a constant", async function() {
+        await window.loadPromise;
+        let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+        setupHexConverter(f, "");
+        let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+        expect(breakdown.flipHexString("0x1234ABCD", 8)).to.equal("0xCDAB3412");
 
+        cleanup();
+    });
+});
+
+describe("swapEndianness", function() {
+    it("swap float->hex", async function() {
+        await window.loadPromise;
+        let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+        setupHexConverter(f, "0x00000000");
+        f.floatingValue = "4.5";
+        f.flipEndianness = true;
+        await new Promise((res) => res());
+        f.shadowRoot.getElementById("convertToHexButton").click();
+        await new Promise((res) => res());
+        expect(f.hexValue).to.equal("0x00009040");
+        expect(f.calculatedHexValue).to.equal("0x00009040");
+        expect(f.floatingValue).to.equal("4.5");
+        expect(f.calculatedFloatingValue).to.equal("4.5");
+
+        cleanup();
+    });
+    it("swap hex->float", async function() {
+        await window.loadPromise;
+        let f = fixture(`<hex-converter floatingPointType="float"></hex-converter>`);
+        setupHexConverter(f, "0x00009040");
+        f.floatingValue = "0.0";
+        f.flipEndianness = true;
+        await new Promise((res) => res());
+        f.shadowRoot.getElementById("convertToFloatButton").click();
+        await new Promise((res) => res());
+        expect(f.hexValue).to.equal("0x00009040");
+        expect(f.calculatedHexValue).to.equal("0x00009040");
+        expect(f.floatingValue).to.equal("4.5");
+        expect(f.calculatedFloatingValue).to.equal("4.5");
+
+        cleanup();
+    });
 
 });
 
