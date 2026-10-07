@@ -85,7 +85,7 @@ class AppSettings extends HTMLElement {
                 <div>
                     <label><input id="showDetails" type="checkbox">Show details</label>
                     &nbsp;
-                      <label><input id="swapBytes" type="checkbox">Swap to use big-endian</label>
+                      <label><input id="swapBytes" type="checkbox">Swap bytes</label>
                     &nbsp;
                     <label><input id="uppercaseLetters" type="checkbox">Uppercase letters in hex</label>
                 </div>
@@ -223,7 +223,7 @@ class HexFloatBreakdown extends HTMLElement {
             <link rel="stylesheet" href="index.css">
             <table id="hexFloatTable" class="hexFloat">
                 <tbody>
-                    <tr><td id="hexTd" colSpan="${this.#params.hexDigits * 4}">{hexValueToUse}{flippedDescription}</td></tr>
+                    <tr><td id="hexTd" colSpan="${this.#params.hexDigits * 4}"></td></tr>
                     <tr id="hexDigitsTr">${hexDigitsTds.join('')}</tr>
                     <tr id="binaryDigitsTr">${binaryDigitsTds.join('')}</tr>
                     <tr id="binaryBreakdownTr">${binaryBreakdownTds.join('')}</tr>
@@ -453,10 +453,10 @@ class HexFloatBreakdown extends HTMLElement {
         }
         this.shadowRoot.getElementById("hexFloatTable").style.display = "";
 
-        let flippedDescription = this.flipEndianness ? ' (swapped endianness)' : '';
-        this.shadowRoot.getElementById("hexTd").innerText = this.hexValue + flippedDescription;
-
+        let flippedDescription = this.flipEndianness ? ' (swapped bytes)' : '';
         let hexValueToUse = this.getHexValueToUse();
+        this.shadowRoot.getElementById("hexTd").innerText = hexValueToUse + flippedDescription;
+
         let hexDigitsTds = this.shadowRoot.getElementById("hexDigitsTr").children;
         for (let i = 0; i < this.#params.hexDigits; i++) {
             hexDigitsTds[i].innerText = hexValueToUse[2 + i];
@@ -578,7 +578,7 @@ class HexConverter extends HTMLElement {
             <form${marginTopText} class="hexConverter" id="hexConverterForm">
                 <h1>${this.#params.floatLongDescription}</h1>
                 <p>
-                    <label><span id="endianness"></span> hex value: <input id="hexValueInput" type="text"></label>
+                    <label>Hex value: <input id="hexValueInput" type="text"></label>
                     <input id="convertToFloatButton" type="button" value="${'Convert to ' + this.#params.floatType.toLowerCase()}">
                 </p>
 
@@ -813,7 +813,6 @@ class HexConverter extends HTMLElement {
 
         this.shadowRoot.getElementById("hexValueInput").value = this.displayHex(this.hexValue);
         this.shadowRoot.getElementById("floatValueInput").value = this.floatingValue;
-        this.shadowRoot.getElementById("endianness").innerText = this.flipEndianness ? "Big endian" : "Little endian";
     }
 }
 customElements.define("hex-converter", HexConverter);

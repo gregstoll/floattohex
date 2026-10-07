@@ -384,6 +384,11 @@ describe("swapEndianness", function() {
         expect(f.floatingValue).to.equal("4.5");
         expect(f.calculatedFloatingValue).to.equal("4.5");
 
+        let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+        let hexTd = breakdown.shadowRoot.getElementById("hexTd");
+        expect(hexTd.innerHTML).to.contain("0x40900000");
+        expect(hexTd.innerHTML).to.contain("swapped");
+
         cleanup();
     });
     it("swap hex->float", async function() {
@@ -399,6 +404,11 @@ describe("swapEndianness", function() {
         expect(f.calculatedHexValue).to.equal("0x00009040");
         expect(f.floatingValue).to.equal("4.5");
         expect(f.calculatedFloatingValue).to.equal("4.5");
+
+        let breakdown = f.shadowRoot.querySelector("hex-float-breakdown");
+        let hexTd = breakdown.shadowRoot.getElementById("hexTd");
+        expect(hexTd.innerHTML).to.contain("0x40900000");
+        expect(hexTd.innerHTML).to.contain("swapped");
 
         cleanup();
     });
